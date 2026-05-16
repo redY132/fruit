@@ -15,6 +15,7 @@ export function Lobby() {
   const navigate = useNavigate();
   const [showJoin, setShowJoin] = useState(false);
   const [code, setCode] = useState('');
+  const [name, setName] = useState('');
 
   function handleJoin() {
     const trimmed = code.trim().toUpperCase();
@@ -47,6 +48,28 @@ export function Lobby() {
         </h1>
 
         <div className="flex flex-col gap-3 w-[280px]" style={{ fontFamily: FONT_BODY }}>
+          {/* Profile name */}
+          <div className="flex flex-col gap-1 mb-1">
+            <label className="text-xs font-bold uppercase tracking-widest pl-1" style={{ color: `${BROWN}80` }}>
+              Your Name
+            </label>
+            <input
+              type="text"
+              maxLength={20}
+              placeholder="Enter your name"
+              value={name}
+              onChange={e => setName(e.target.value)}
+              className="w-full py-3 px-5 rounded-full text-sm font-semibold outline-none transition-colors border-2 placeholder:opacity-40"
+              style={{
+                fontFamily: FONT_BODY,
+                borderColor: BROWN,
+                color: BROWN,
+                backgroundColor: '#EDE8E8',
+                boxShadow: SHADOW,
+              }}
+            />
+          </div>
+
           <button
             onClick={() => setShowJoin(true)}
             className="w-full text-white py-4 rounded-full font-bold text-lg transition-colors active:scale-95"

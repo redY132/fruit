@@ -65,7 +65,7 @@ frontend/
       models/
         hand_landmarker.task  — bundled MediaPipe model file
       supabase.ts         — Supabase client init (anon key + URL)
-      channels.ts         — Realtime channel name constants + event type enums [MISSING]
+      channels.ts         — lobbyChannel/gameChannel helpers + GameEvent/LobbyEvent as-const objects
       utils.ts            — shadcn cn() utility
       ImageWithFallback.tsx — image component with fallback handling
 
@@ -81,9 +81,8 @@ frontend/
     hooks/
       useHandTracking.ts  — MediaPipe on webcam stream, emits landmark frames
       useGameLoop.ts      — RAF tick; physics update + slice check each frame
-      useWebSocket.ts     — WS hook [TO MIGRATE → useRealtimeChannel.ts]
-      useAuth.ts          — Supabase anon sign-in; exposes session/player_id [MISSING]
-      useRealtimeChannel.ts — Supabase Realtime channel subscription [MISSING]
+      useAuth.ts          — Supabase anon sign-in on INITIAL_SESSION; exposes session/playerId
+      useRealtimeChannel.ts — Supabase Realtime channel; subscribe/broadcast, refs prevent stale closures
 
     components/
       GameCanvas.tsx      — webcam feed + fruit/bomb draw layer

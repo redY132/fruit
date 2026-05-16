@@ -1,8 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Settings } from 'lucide-react';
 import { useNavigate } from 'react-router';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
-import CustomWebcam from '../components/Webcam';
 
 const FONT_TITLE = "'Irish Grover', cursive";
 const FONT_BODY = "'Baloo Bhaijaan 2', sans-serif";
@@ -11,7 +9,6 @@ const SHADOW = '0 4px 14px rgba(86,74,74,0.35)';
 
 export function Menu() {
   const navigate = useNavigate();
-  const [cameraOpen, setCameraOpen] = useState(false);
 
   return (
     <div className="w-screen h-screen bg-white flex flex-col items-center justify-center relative overflow-hidden">
@@ -50,7 +47,7 @@ export function Menu() {
           </button>
 
           <button
-            onClick={() => setCameraOpen(true)}
+            onClick={() => navigate('/camera-test')}
             className="w-full py-3 rounded-full font-semibold text-sm text-white transition-colors active:scale-95"
             style={{ backgroundColor: BROWN, boxShadow: SHADOW }}
           >
@@ -66,19 +63,6 @@ export function Menu() {
         className="absolute bottom-0 left-0 w-full object-contain object-bottom pointer-events-none select-none"
         style={{ maxHeight: '42vh' }}
       />
-
-      {/* Webcam test dialog */}
-      <Dialog open={cameraOpen} onOpenChange={setCameraOpen}>
-        <DialogContent style={{ width: 'fit-content', maxWidth: '90vw' }}>
-          <DialogHeader>
-            <DialogTitle>Camera Test</DialogTitle>
-          </DialogHeader>
-          <CustomWebcam
-            width={Math.round(window.innerWidth * 0.6)}
-            height={Math.round(window.innerHeight * 0.6)}
-          />
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

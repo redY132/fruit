@@ -84,7 +84,7 @@ export function useHandTracking(
 
         if (results.landmarks.length > 0) {
           const tip = results.landmarks[0][8];
-          trailRef.current.push({ x: tip.x, y: tip.y });
+          trailRef.current.push({ x: 1 - tip.x, y: tip.y });
           if (trailRef.current.length > TRAIL_LENGTH)
             trailRef.current.shift();
         } else {

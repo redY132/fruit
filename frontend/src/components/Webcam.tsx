@@ -16,7 +16,7 @@ const CustomWebcam = ({ width, height }: Props) => {
 
   return (
     <div style={{ position: "relative", width, height }}>
-      <Webcam ref={webcamRef} width={width} height={height} />
+      <Webcam ref={webcamRef} width={width} height={height} mirrored />
       <HandOverlay ref={canvasRef} width={width} height={height} />
     </div>
   );

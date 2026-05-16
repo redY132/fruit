@@ -67,6 +67,9 @@ export function useHandTracking(
 ) {
   const landmarkerRef = useRef<HandLandmarker | null>(null);
   const trailRef = useRef<{ x: number; y: number }[]>([]);
+  const hadHandRef = useRef(false);
+  const smoothedTipRef = useRef<{ x: number; y: number } | null>(null);
+  const SMOOTHING = 0.5;
 
   useEffect(() => {
     initMediaPipe().then(lm => { landmarkerRef.current = lm; });
@@ -83,30 +86,44 @@ export function useHandTracking(
         const results = landmarkerRef.current.detectForVideo(video, Date.now());
 
         if (results.landmarks.length > 0) {
-          const tip = { x: 1 - results.landmarks[0][8].x, y: results.landmarks[0][8].y };
+          const raw = { x: 1 - results.landmarks[0][8].x, y: results.landmarks[0][8].y };
+          const prevSmoothed = smoothedTipRef.current ?? raw;
+          const tip = {
+            x: prevSmoothed.x * SMOOTHING + raw.x * (1 - SMOOTHING),
+            y: prevSmoothed.y * SMOOTHING + raw.y * (1 - SMOOTHING),
+          };
+          smoothedTipRef.current = tip;
           const prev = trailRef.current[trailRef.current.length - 1];
 
-          if (prev) {
+          if (prev && hadHandRef.current) {
             const dx = tip.x - prev.x;
             const dy = tip.y - prev.y;
             const dist = Math.sqrt(dx * dx + dy * dy);
-            const steps = Math.max(1, Math.ceil(dist / 0.02));
+            const steps = Math.max(1, Math.ceil(dist / 0.01));
             for (let i = 1; i <= steps; i++) {
               const t = i / steps;
               trailRef.current.push({ x: prev.x + dx * t, y: prev.y + dy * t });
             }
           } else {
+            // jump to current point after a gap — no interpolation across missing frames
             trailRef.current.push(tip);
           }
+
+          hadHandRef.current = true;
 
           if (trailRef.current.length > TRAIL_LENGTH)
             trailRef.current.splice(0, trailRef.current.length - TRAIL_LENGTH);
         } else {
-          trailRef.current = [];
+          hadHandRef.current = false;
+          smoothedTipRef.current = null;
         }
 
+        const mirrored = results.landmarks.map(hand =>
+          hand.map(pt => ({ ...pt, x: 1 - pt.x }))
+        );
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         drawTrail(ctx, trailRef.current, canvas.width, canvas.height);
+        // draw(ctx, mirrored, canvas.width, canvas.height);
       }
       animId = requestAnimationFrame(detect);
     }

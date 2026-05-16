@@ -11,9 +11,9 @@ export async function initMediaPipe(): Promise<HandLandmarker> {
             modelAssetPath: modelUrl,
         },
         numHands: 2,
-        minHandDetectionConfidence: 0.7,
-        minHandPresenceConfidence: 0.7,
-        minTrackingConfidence: 0.7,
+        minHandDetectionConfidence: 0.5,
+        minHandPresenceConfidence: 0.5,
+        minTrackingConfidence: 0.5,
     });
     return handLandmarker;
 }

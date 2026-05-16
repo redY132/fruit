@@ -72,7 +72,7 @@ Each file has one job. Nothing bleeds into its neighbour.
 
 ## Phase 10 — Supabase Schema (one migration per table)
 - [x] `supabase/migrations/001_lobbies.sql` — lobbies table: id, code, host_id, status, seed, created_at + RLS
-- [ ] `supabase/migrations/002_lobby_players.sql` — lobby_players table: lobby_id, player_id, ready, lives, score, eliminated_at + RLS
+- [x] `supabase/migrations/002_lobby_players.sql` — lobby_players table: lobby_id, player_id, ready, lives, score, eliminated_at + RLS
 - [ ] `supabase/migrations/003_match_events.sql` — match_events table: id, lobby_id, type, payload (jsonb), created_at + RLS
 
 ---

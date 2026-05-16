@@ -11,10 +11,16 @@ port = 54323
 
 [auth]
 site_url = "http://localhost:5173"
+additional_redirect_urls = ["http://localhost:5173"]
 
 [auth.email]
 enable_signup = true
 enable_confirmations = false
+
+[auth.external.google]
+enabled = true
+client_id = "env(GOOGLE_CLIENT_ID)"
+secret = "env(GOOGLE_CLIENT_SECRET)"
 
 [realtime]
 enabled = true

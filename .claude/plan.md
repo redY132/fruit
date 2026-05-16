@@ -98,4 +98,5 @@ Each file has one job. Nothing bleeds into its neighbour.
 - [x] add `frontend/src/hooks/useAuth.ts`
 - [x] add `frontend/src/lib/channels.ts`
 - [ ] add `frontend/src/types/database.ts`
-- [ ] add `.env.local` + `.env.example`
+- [x] add `.env.example`
+- [ ] add `.env.local` (fill in real values)

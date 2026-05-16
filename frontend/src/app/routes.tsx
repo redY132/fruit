@@ -6,25 +6,33 @@ import { Game } from "../pages/Game";
 import { Results } from "../pages/Results";
 import { Settings } from "../pages/Settings";
 import { CameraTest } from "../pages/CameraTest";
+import { SignIn } from "../pages/SignIn";
 import { ShopOverlay } from "../components/ShopOverlay";
+import { ProtectedRoute } from "../components/ProtectedRoute";
 import React from "react";
 
 export const router = createBrowserRouter([
-  { path: "/", Component: Menu },
-  { path: "/lobby", Component: Lobby },
-  { path: "/room", Component: Room },
-  { path: "/settings", Component: Settings },
-  { path: "/game", Component: Game },
-  { path: "/bomb", Component: () => <Game bombWarning /> },
-  { path: "/results", Component: Results },
-  { path: "/camera-test", Component: CameraTest },
+  { path: "/signin", Component: SignIn },
   {
-    path: "/shop",
-    Component: () => (
-      <div className="relative w-full h-screen">
-        <Game />
-        <ShopOverlay open onClose={() => {}} points={1200} />
-      </div>
-    ),
+    Component: ProtectedRoute,
+    children: [
+      { path: "/", Component: Menu },
+      { path: "/lobby", Component: Lobby },
+      { path: "/room", Component: Room },
+      { path: "/settings", Component: Settings },
+      { path: "/game", Component: Game },
+      { path: "/bomb", Component: () => <Game bombWarning /> },
+      { path: "/results", Component: Results },
+      { path: "/camera-test", Component: CameraTest },
+      {
+        path: "/shop",
+        Component: () => (
+          <div className="relative w-full h-screen">
+            <Game />
+            <ShopOverlay open onClose={() => {}} points={1200} />
+          </div>
+        ),
+      },
+    ],
   },
 ]);

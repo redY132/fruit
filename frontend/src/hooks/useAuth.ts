@@ -6,11 +6,8 @@ export function useAuth() {
   const [session, setSession] = useState<Session | null>(null)
 
   useEffect(() => {
-    const { data } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
-      if (event === 'INITIAL_SESSION' && session === null) {
-        supabase.auth.signInAnonymously()
-      }
     })
 
     return () => data.subscription.unsubscribe()

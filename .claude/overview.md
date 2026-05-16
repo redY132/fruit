@@ -15,6 +15,14 @@ High-Skill Counters: Players can spend points on defensive clearing zones, or po
 
 Backend Infrastructure — Supabase
 Realtime: Supabase Realtime channels handle lobby presence, live leaderboard sync, and fruit spawn broadcast across all players.
-Database: Postgres tables (lobbies, players, match_events) store lobby/match state and scores with row-level security.
-Edge Functions: Server-authoritative logic — seeded deterministic fruit queue generation and sabotage validation run as Supabase Edge Functions to prevent client-side cheating.
-Auth: Supabase Auth for player identity.
+Database: Postgres tables (lobbies, lobby_players, match_events) store lobby/match state and scores with row-level security. Score and lives are service-role-only writes.
+Edge Functions: Server-authoritative logic — seeded deterministic fruit queue generation (generate-fruit-queue) and sabotage validation (validate-sabotage) run as Supabase Edge Functions.
+Auth: Supabase anonymous auth for player identity (no sign-up required).
+
+Frontend Stack
+Framework: React + TypeScript, bundled with Vite.
+UI: shadcn/ui component library (Tailwind-based) for non-game UI (lobby, menus, results).
+Hand Tracking: MediaPipe HandLandmarker via @mediapipe/tasks-vision; model bundled locally at src/lib/models/hand_landmarker.task.
+Routing: React Router with pages for Menu, Lobby, Room (waiting), Game, Results.
+State: Zustand stores (gameStore, playerStore) for in-game state; Supabase Realtime for cross-player sync.
+Pending: websocket.ts and useWebSocket.ts need migration to Supabase client and useRealtimeChannel hook.

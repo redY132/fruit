@@ -18,7 +18,7 @@ interface LeaderboardProps {
 export function Leaderboard({ entries, localPlayerId }: LeaderboardProps) {
   return (
     <div className="absolute bottom-6 left-6 w-[280px] bg-black/40 backdrop-blur-md rounded-[20px] border border-white/10 p-4 z-10">
-      <div className="text-xs font-bold text-white/70 uppercase tracking-widest mb-3 px-2">
+      <div className="text-xs font-bold text-white/70 uppercase tracking-widest mb-3 px-1">
         Live Scores
       </div>
       <div className="flex flex-col gap-2">
@@ -30,34 +30,52 @@ export function Leaderboard({ entries, localPlayerId }: LeaderboardProps) {
   );
 }
 
-function ScoreRow({
-  rank, name, score, hearts, isYou, dead,
-}: ScoreEntry & { isYou: boolean }) {
+function ScoreRow({ rank, name, score, hearts, isYou, dead }: ScoreEntry & { isYou: boolean }) {
   return (
     <div
-      className={`flex items-center justify-between px-3 py-2 rounded-xl transition-colors ${
-        isYou ? 'bg-primary/20 border border-primary/30' : 'bg-white/5 border border-transparent'
-      } ${dead ? 'opacity-50' : ''}`}
+      className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-colors ${
+        isYou ? 'bg-white/15 border border-white/30' : 'bg-white/5'
+      } ${dead ? 'opacity-40' : ''}`}
     >
-      <div className="flex items-center gap-3">
-        <span className={`text-xs font-bold w-4 text-center ${rank === 1 ? 'text-amber-400' : 'text-white/50'}`}>
-          {rank}
-        </span>
-        <span className={`text-sm font-bold truncate w-20 ${dead ? 'line-through text-white/50' : 'text-white'}`}>
-          {name}
-        </span>
+      {/* Rank */}
+      <span
+        className={`text-xs font-bold w-3 shrink-0 ${
+          rank === 1 ? 'text-amber-400' : 'text-white/40'
+        }`}
+      >
+        {rank}
+      </span>
+
+      {/* Avatar circle */}
+      <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0 bg-[#564A4A]">
+        {name.substring(0, 2).toUpperCase()}
       </div>
-      <div className="flex items-center gap-3">
-        <span className="font-mono text-sm text-white/90">{score}</span>
-        <div className="flex gap-0.5 w-12 justify-end">
+
+      {/* Name */}
+      <span
+        className={`text-sm font-semibold flex-1 truncate ${
+          dead ? 'line-through text-white/40' : 'text-white'
+        }`}
+      >
+        {name}
+      </span>
+
+      {/* Score + hearts stacked */}
+      <div className="flex flex-col items-end gap-0.5">
+        <span className="font-mono text-xs text-white/90">{score.toLocaleString()}</span>
+        <div className="flex gap-0.5">
           {dead ? (
-            <Skull size={14} className="text-destructive" />
+            <Skull size={10} className="text-destructive" />
           ) : (
             [...Array(3)].map((_, i) => (
               <Heart
                 key={i}
-                size={10}
-                className={i < hearts ? 'fill-primary text-primary' : 'fill-transparent text-white/20'}
+                size={8}
+                className={
+                  i < hearts
+                    ? 'fill-primary text-primary'
+                    : 'fill-transparent text-white/20'
+                }
               />
             ))
           )}

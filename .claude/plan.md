@@ -7,8 +7,9 @@ Each file has one job. Nothing bleeds into its neighbour.
 - [ ] `frontend/index.html` — Vite HTML shell, mounts `#root`
 - [ ] `frontend/vite.config.ts` — Vite config (React plugin, path aliases only)
 - [ ] `frontend/tsconfig.json` — TypeScript config (strict, path aliases)
-- [ ] `backend/java/build.gradle` — Gradle config (Spring Boot, WebSocket deps only)
-- [ ] `backend/java/src/main/resources/application.properties` — server port, WS config
+- [x] `backend/java/build.gradle` — Gradle config (Spring Boot, WebSocket deps only)
+- [x] `backend/java/settings.gradle` — project name declaration (required by Gradle)
+- [x] `backend/java/src/main/resources/application.properties` — server port, WS config
 
 ---
 

@@ -5,6 +5,13 @@ import { GameCanvas } from '../components/GameCanvas';
 import { Leaderboard, type ScoreEntry } from '../components/Leaderboard';
 import { LivesDisplay } from '../components/LivesDisplay';
 import { ShopOverlay, ShopTriggerZones } from '../components/ShopOverlay';
+import { settingsStore } from '../store/settingsStore';
+
+function formatTime(s: number) {
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return `${m}:${String(sec).padStart(2, '0')}`;
+}
 
 const MOCK_SCORES: ScoreEntry[] = [
   { id: 'kuro', rank: 1, name: 'Kuro', score: 2850, hearts: 3 },
@@ -20,6 +27,7 @@ interface GameProps {
 export function Game({ bombWarning = false }: GameProps) {
   const navigate = useNavigate();
   const [shopOpen, setShopOpen] = useState(false);
+  const duration = settingsStore.get().gameDuration;
 
   return (
     <GameCanvas bombWarning={bombWarning}>
@@ -34,7 +42,7 @@ export function Game({ bombWarning = false }: GameProps) {
 
       {/* Top Center: Timer */}
       <div className="absolute top-6 left-1/2 -translate-x-1/2 flex flex-col items-center z-10">
-        <div className="text-4xl font-mono font-black text-white tracking-tight">1:42</div>
+        <div className="text-4xl font-mono font-black text-white tracking-tight">{formatTime(duration)}</div>
         <div className="text-xs font-bold text-white/70 uppercase tracking-widest">time remaining</div>
       </div>
 

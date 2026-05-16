@@ -4,6 +4,7 @@ import { Lobby } from "../pages/Lobby";
 import { Room } from "../pages/Room";
 import { Game } from "../pages/Game";
 import { Results } from "../pages/Results";
+import { Settings } from "../pages/Settings";
 import { ShopOverlay } from "../components/ShopOverlay";
 import React from "react";
 
@@ -11,6 +12,7 @@ export const router = createBrowserRouter([
   { path: "/", Component: Menu },
   { path: "/lobby", Component: Lobby },
   { path: "/room", Component: Room },
+  { path: "/settings", Component: Settings },
   { path: "/game", Component: Game },
   { path: "/bomb", Component: () => <Game bombWarning /> },
   { path: "/results", Component: Results },

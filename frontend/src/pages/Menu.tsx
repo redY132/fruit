@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Settings } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
 import CustomWebcam from '../components/Webcam';
@@ -14,6 +15,16 @@ export function Menu() {
 
   return (
     <div className="w-screen h-screen bg-white flex flex-col items-center justify-center relative overflow-hidden">
+      {/* Settings button — top right */}
+      <button
+        onClick={() => navigate('/settings')}
+        className="absolute top-6 right-6 z-10 p-2 rounded-xl hover:opacity-70 transition-opacity"
+        style={{ color: BROWN }}
+        title="Settings"
+      >
+        <Settings size={24} />
+      </button>
+
       <div className="flex flex-col items-center z-10 mb-8">
         <h1
           className="text-[96px] leading-none mb-10"
@@ -26,12 +37,7 @@ export function Menu() {
           <button
             onClick={() => navigate('/lobby')}
             className="w-full py-4 rounded-full font-bold text-lg transition-colors active:scale-95 border-2"
-            style={{
-              backgroundColor: '#EDE8E8',
-              borderColor: BROWN,
-              color: BROWN,
-              boxShadow: SHADOW,
-            }}
+            style={{ backgroundColor: '#EDE8E8', borderColor: BROWN, color: BROWN, boxShadow: SHADOW }}
           >
             Play
           </button>

@@ -10,7 +10,9 @@ interface GameCanvasProps {
 
 export function GameCanvas({ bombWarning = false, children }: GameCanvasProps) {
   const webcamRef = useRef<Webcam>(null);
-  const { landmarks } = useHandTracking(webcamRef);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useHandTracking(webcamRef, canvasRef);
 
   return (
     <div
@@ -18,10 +20,9 @@ export function GameCanvas({ bombWarning = false, children }: GameCanvasProps) {
         bombWarning ? 'border-[6px] border-destructive' : ''
       }`}
     >
-      {/* Full-screen mirrored webcam feed */}
+      {/* Full-screen webcam feed */}
       <Webcam
         ref={webcamRef}
-        mirrored
         style={{
           position: 'absolute',
           inset: 0,
@@ -31,9 +32,9 @@ export function GameCanvas({ bombWarning = false, children }: GameCanvasProps) {
         }}
       />
 
-      {/* Hand skeleton overlay — full viewport dimensions */}
+      {/* Trail + hand skeleton overlay — full viewport dimensions */}
       <HandOverlay
-        landmarks={landmarks}
+        ref={canvasRef}
         width={window.innerWidth}
         height={window.innerHeight}
       />

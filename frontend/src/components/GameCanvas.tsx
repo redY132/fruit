@@ -30,6 +30,7 @@ export function GameCanvas({ bombWarning = false, children }: GameCanvasProps) {
           height: '100%',
           objectFit: 'cover',
         }}
+        mirrored
       />
 
       {/* Trail + hand skeleton overlay — full viewport dimensions */}

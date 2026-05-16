@@ -81,9 +81,8 @@ frontend/
     hooks/
       useHandTracking.ts  — MediaPipe on webcam stream, emits landmark frames
       useGameLoop.ts      — RAF tick; physics update + slice check each frame
-      useWebSocket.ts     — WS hook [TO MIGRATE → useRealtimeChannel.ts]
       useAuth.ts          — Supabase anon sign-in; exposes session/player_id [MISSING]
-      useRealtimeChannel.ts — Supabase Realtime channel subscription [MISSING]
+      useRealtimeChannel.ts — Supabase Realtime channel; subscribe/broadcast, refs prevent stale closures
 
     components/
       GameCanvas.tsx      — webcam feed + fruit/bomb draw layer

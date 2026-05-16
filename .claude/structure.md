@@ -81,7 +81,7 @@ frontend/
     hooks/
       useHandTracking.ts  — MediaPipe on webcam stream, emits landmark frames
       useGameLoop.ts      — RAF tick; physics update + slice check each frame
-      useAuth.ts          — Supabase anon sign-in; exposes session/player_id [MISSING]
+      useAuth.ts          — Supabase anon sign-in on INITIAL_SESSION; exposes session/playerId
       useRealtimeChannel.ts — Supabase Realtime channel; subscribe/broadcast, refs prevent stale closures
 
     components/

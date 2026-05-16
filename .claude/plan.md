@@ -80,5 +80,5 @@ Each file has one job. Nothing bleeds into its neighbour.
 ## Phase 11 — Supabase Edge Functions (server-authoritative logic)
 - [ ] `supabase/functions/_shared/cors.ts` — shared CORS headers; imported by all functions
 - [x] `supabase/functions/_shared/supabase-admin.ts` — service-role client; never exposed to frontend
-- [ ] `supabase/functions/generate-fruit-queue/index.ts` — seeded deterministic spawn sequence; called at match start
+- [x] `supabase/functions/generate-fruit-queue/index.ts` — seeded deterministic spawn sequence; called at match start
 - [ ] `supabase/functions/validate-sabotage/index.ts` — validates buyer balance, deducts points, injects into match_events

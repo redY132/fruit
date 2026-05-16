@@ -1,3 +1,5 @@
+import { supabase } from '../lib/supabase';
+
 const KEY = 'fruity_profile';
 
 export interface Profile {
@@ -17,4 +19,7 @@ export const profileStore = {
   get: load,
   save: (p: Partial<Profile>) =>
     localStorage.setItem(KEY, JSON.stringify({ ...load(), ...p })),
+  syncToSupabase: async (playerId: string, name: string) => {
+    await supabase.from('profiles').upsert({ id: playerId, display_name: name });
+  },
 };

@@ -8,7 +8,6 @@ const FRUIT_POOL = [
   { type: 'pineapple',  weight: 15 },
 ]
 const TOTAL_WEIGHT = FRUIT_POOL.reduce((sum, f) => sum + f.weight, 0)
-const EVENT_COUNT  = 60
 const INTERVAL_MS  = 1500
 
 function mulberry32(seed: number) {
@@ -35,15 +34,21 @@ Deno.serve(async (req: Request) => {
   if (preflight) return preflight
 
   let lobby_id: string
+  let gameDuration: number = 90
   try {
     const body = await req.json()
     lobby_id = body?.lobby_id
+    if (typeof body?.gameDuration === 'number') {
+      gameDuration = Math.min(180, Math.max(60, body.gameDuration))
+    }
   } catch {
     return new Response(JSON.stringify({ error: 'invalid body' }), { status: 400, headers: corsHeaders })
   }
   if (!lobby_id) {
     return new Response(JSON.stringify({ error: 'missing lobby_id' }), { status: 400, headers: corsHeaders })
   }
+
+  const EVENT_COUNT = Math.round((gameDuration * 1000) / INTERVAL_MS)
 
   const jwt = req.headers.get('Authorization')?.replace('Bearer ', '')
   const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(jwt ?? '')

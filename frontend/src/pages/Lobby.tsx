@@ -1,7 +1,9 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, Camera } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { profileStore } from '../store/profileStore';
+import { useAuth } from '../hooks/useAuth';
+import { supabase } from '../lib/supabase';
 
 const FONT_TITLE = "'Irish Grover', cursive";
 const FONT_BODY = "'Baloo Bhaijaan 2', sans-serif";
@@ -14,6 +16,7 @@ function generateCode() {
 
 export function Lobby() {
   const navigate = useNavigate();
+  const { playerId } = useAuth();
   const profile = profileStore.get();
 
   const [showJoin, setShowJoin] = useState(false);
@@ -22,9 +25,25 @@ export function Lobby() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(profile.avatarUrl);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  useEffect(() => {
+    if (!playerId) return;
+    supabase
+      .from('profiles')
+      .select('display_name')
+      .eq('id', playerId)
+      .single()
+      .then(({ data }) => {
+        if (data?.display_name) {
+          setName(data.display_name);
+          profileStore.save({ name: data.display_name });
+        }
+      });
+  }, [playerId]);
+
   function handleNameChange(val: string) {
     setName(val);
     profileStore.save({ name: val });
+    if (playerId) profileStore.syncToSupabase(playerId, val);
   }
 
   function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {

@@ -1,6 +1,15 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Copy, Check, Crown } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router';
+import { settingsStore } from '../store/settingsStore';
+
+const DURATIONS = [60, 90, 120, 180];
+
+function formatDuration(s: number) {
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return sec === 0 ? `${m}m` : `${m}:${String(sec).padStart(2, '0')}`;
+}
 
 const FONT_TITLE = "'Irish Grover', cursive";
 const FONT_BODY = "'Baloo Bhaijaan 2', sans-serif";
@@ -19,6 +28,12 @@ export function Room() {
 
   const [isReady, setIsReady] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [duration, setDuration] = useState(settingsStore.get().gameDuration);
+
+  function handleDuration(d: number) {
+    setDuration(d);
+    settingsStore.save({ gameDuration: d });
+  }
 
   function handleCopy() {
     navigator.clipboard.writeText(code);
@@ -78,6 +93,32 @@ export function Room() {
           {Array.from({ length: Math.max(0, 4 - MOCK_PLAYERS.length) }).map((_, i) => (
             <EmptySlot key={`empty-${i}`} />
           ))}
+        </div>
+
+        {/* Game Duration */}
+        <div className="w-full flex flex-col gap-2 mb-6">
+          <label
+            className="text-xs font-bold uppercase tracking-widest pl-1"
+            style={{ color: `${BROWN}80` }}
+          >
+            Game Duration
+          </label>
+          <div className="grid grid-cols-4 gap-2">
+            {DURATIONS.map(d => (
+              <button
+                key={d}
+                onClick={() => handleDuration(d)}
+                className="py-3 rounded-full font-bold text-sm transition-all active:scale-95"
+                style={
+                  duration === d
+                    ? { backgroundColor: BROWN, color: '#fff', boxShadow: SHADOW }
+                    : { backgroundColor: '#EDE8E8', border: `2px solid ${BROWN}`, color: BROWN }
+                }
+              >
+                {formatDuration(d)}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Ready button */}

@@ -72,8 +72,8 @@ Each file has one job. Nothing bleeds into its neighbour.
 
 ## Phase 10 — Supabase Schema (one migration per table)
 - [x] `supabase/migrations/001_lobbies.sql` — lobbies table: id, code, host_id, status, seed, created_at + RLS
-- [ ] `supabase/migrations/002_lobby_players.sql` — lobby_players table: lobby_id, player_id, ready, lives, score, eliminated_at + RLS
-- [ ] `supabase/migrations/003_match_events.sql` — match_events table: id, lobby_id, type, payload (jsonb), created_at + RLS
+- [x] `supabase/migrations/002_lobby_players.sql` — lobby_players table: lobby_id, player_id, ready, lives, score, eliminated_at + RLS
+- [x] `supabase/migrations/003_match_events.sql` — match_events table: id, lobby_id, type, payload (jsonb), created_at + RLS
 
 ---
 
@@ -81,4 +81,4 @@ Each file has one job. Nothing bleeds into its neighbour.
 - [ ] `supabase/functions/_shared/cors.ts` — shared CORS headers; imported by all functions
 - [x] `supabase/functions/_shared/supabase-admin.ts` — service-role client; never exposed to frontend
 - [x] `supabase/functions/generate-fruit-queue/index.ts` — seeded deterministic spawn sequence; called at match start
-- [ ] `supabase/functions/validate-sabotage/index.ts` — validates buyer balance, deducts points, injects into match_events
+- [x] `supabase/functions/validate-sabotage/index.ts` — validates buyer balance, deducts points, injects into match_events

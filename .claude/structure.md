@@ -65,7 +65,7 @@ frontend/
       models/
         hand_landmarker.task  — bundled MediaPipe model file
       supabase.ts         — Supabase client init (anon key + URL)
-      channels.ts         — Realtime channel name constants + event type enums [MISSING]
+      channels.ts         — lobbyChannel/gameChannel helpers + GameEvent/LobbyEvent as-const objects
       utils.ts            — shadcn cn() utility
       ImageWithFallback.tsx — image component with fallback handling
 

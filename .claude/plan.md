@@ -96,6 +96,6 @@ Each file has one job. Nothing bleeds into its neighbour.
 - [x] migrate `frontend/src/lib/websocket.ts` → `supabase.ts`
 - [x] migrate `frontend/src/hooks/useWebSocket.ts` → `useRealtimeChannel.ts`
 - [x] add `frontend/src/hooks/useAuth.ts`
-- [ ] add `frontend/src/lib/channels.ts`
+- [x] add `frontend/src/lib/channels.ts`
 - [ ] add `frontend/src/types/database.ts`
 - [ ] add `.env.local` + `.env.example`

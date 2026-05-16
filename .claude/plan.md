@@ -7,9 +7,9 @@ Each file has one job. Nothing bleeds into its neighbour.
 - [ ] `frontend/index.html` — Vite HTML shell, mounts `#root`
 - [ ] `frontend/vite.config.ts` — Vite config (React plugin, path aliases only)
 - [ ] `frontend/tsconfig.json` — TypeScript config (strict, path aliases)
-- [x] `backend/java/build.gradle` — Gradle config (Spring Boot, WebSocket deps only)
-- [x] `backend/java/settings.gradle` — project name declaration (required by Gradle)
-- [x] `backend/java/src/main/resources/application.properties` — server port, WS config
+- [ ] `.env.local` — VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY (gitignored)
+- [ ] `.env.example` — same keys, empty values, committed
+- [x] `supabase/config.toml` — Supabase CLI project config
 
 ---
 
@@ -17,12 +17,14 @@ Each file has one job. Nothing bleeds into its neighbour.
 - [ ] `frontend/src/types/game.ts` — `Fruit`, `Bomb`, `FruitQueue`, `SpawnEvent`
 - [ ] `frontend/src/types/player.ts` — `Player`, `Lives`, `Score`, `Multiplier`
 - [ ] `frontend/src/types/shop.ts` — `ShopItem`, `TriggerZone`, `Sabotage`
+- [ ] `frontend/src/types/database.ts` — generated via `supabase gen types typescript`; row types for lobbies, lobby_players, match_events
 
 ---
 
 ## Phase 3 — Lib (singleton setup, no game logic)
 - [ ] `frontend/src/lib/mediapipe.ts` — loads MediaPipe model, exports initialised `HandLandmarker`
-- [ ] `frontend/src/lib/websocket.ts` — WS client (connect, send, on, reconnect); no game knowledge
+- [ ] `frontend/src/lib/supabase.ts` — Supabase client init (anon key + URL only); no game knowledge
+- [ ] `frontend/src/lib/channels.ts` — channel name constants (`lobby:{id}`, `game:{id}`) + event type enums; no Supabase import
 
 ---
 
@@ -40,9 +42,10 @@ Each file has one job. Nothing bleeds into its neighbour.
 ---
 
 ## Phase 6 — Hooks (wire lib/utils/store together, one concern each)
+- [ ] `frontend/src/hooks/useAuth.ts` — Supabase anon sign-in on mount; exposes session/player_id only
 - [ ] `frontend/src/hooks/useHandTracking.ts` — runs `mediapipe.ts` on webcam stream, emits landmark frames
 - [ ] `frontend/src/hooks/useGameLoop.ts` — RAF tick; calls physics update + slice check each frame
-- [ ] `frontend/src/hooks/useWebSocket.ts` — connects via `websocket.ts`, dispatches inbound events to store
+- [ ] `frontend/src/hooks/useRealtimeChannel.ts` — Supabase Realtime channel; dispatches inbound events to store
 
 ---
 
@@ -67,26 +70,15 @@ Each file has one job. Nothing bleeds into its neighbour.
 
 ---
 
-## Phase 10 — Backend: Models (data shapes, no logic)
-- [ ] `backend/.../model/Player.java` — id, score, lives, ready state
-- [ ] `backend/.../model/FruitEvent.java` — spawnTime, type, arc params, targetPlayerId
-- [ ] `backend/.../model/SabotageEvent.java` — type, senderId, targetId, injectedAt
+## Phase 10 — Supabase Schema (one migration per table)
+- [x] `supabase/migrations/001_lobbies.sql` — lobbies table: id, code, host_id, status, seed, created_at + RLS
+- [ ] `supabase/migrations/002_lobby_players.sql` — lobby_players table: lobby_id, player_id, ready, lives, score, eliminated_at + RLS
+- [ ] `supabase/migrations/003_match_events.sql` — match_events table: id, lobby_id, type, payload (jsonb), created_at + RLS
 
 ---
 
-## Phase 11 — Backend: Services (one service = one domain)
-- [ ] `backend/.../game/FruitQueueService.java` — deterministic sequence generator (seeded RNG); no WS knowledge
-- [ ] `backend/.../game/SabotageService.java` — validates + routes injections; reads/writes queue only
-- [ ] `backend/.../game/GameSessionService.java` — lobby lifecycle, match start/end, score aggregation
-
----
-
-## Phase 12 — Backend: WebSocket Handlers (transport only, delegate to services)
-- [ ] `backend/.../websocket/LobbyWebSocketHandler.java` — join, ready, leave messages → GameSessionService
-- [ ] `backend/.../websocket/GameWebSocketHandler.java` — slice, purchase, sabotage messages → services
-- [ ] `backend/.../config/WebSocketConfig.java` — registers handlers, sets endpoints; no logic
-
----
-
-## Phase 13 — Backend: Entry
-- [ ] `backend/.../FruityApplication.java` — `@SpringBootApplication` main; nothing else
+## Phase 11 — Supabase Edge Functions (server-authoritative logic)
+- [ ] `supabase/functions/_shared/cors.ts` — shared CORS headers; imported by all functions
+- [ ] `supabase/functions/_shared/supabase-admin.ts` — service-role client; never exposed to frontend
+- [ ] `supabase/functions/generate-fruit-queue/index.ts` — seeded deterministic spawn sequence; called at match start
+- [ ] `supabase/functions/validate-sabotage/index.ts` — validates buyer balance, deducts points, injects into match_events

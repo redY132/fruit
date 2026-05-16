@@ -12,3 +12,9 @@ Live Pressure Sidebar: A shared, real-time leaderboard ticks constantly on the b
 System Defenses & Balance
 Injection Warnings: Injected bombs give a brief visual edge-flash on the victim's screen before spawning, preventing unreactable cheap shots.
 High-Skill Counters: Players can spend points on defensive clearing zones, or potentially "parry" an incoming bomb by slicing it at the absolute peak of its physical arc to reflect it back to the sender.
+
+Backend Infrastructure — Supabase
+Realtime: Supabase Realtime channels handle lobby presence, live leaderboard sync, and fruit spawn broadcast across all players.
+Database: Postgres tables (lobbies, players, match_events) store lobby/match state and scores with row-level security.
+Edge Functions: Server-authoritative logic — seeded deterministic fruit queue generation and sabotage validation run as Supabase Edge Functions to prevent client-side cheating.
+Auth: Supabase Auth for player identity.

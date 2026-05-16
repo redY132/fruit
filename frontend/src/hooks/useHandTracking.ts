@@ -83,10 +83,24 @@ export function useHandTracking(
         const results = landmarkerRef.current.detectForVideo(video, Date.now());
 
         if (results.landmarks.length > 0) {
-          const tip = results.landmarks[0][8];
-          trailRef.current.push({ x: 1 - tip.x, y: tip.y });
+          const tip = { x: 1 - results.landmarks[0][8].x, y: results.landmarks[0][8].y };
+          const prev = trailRef.current[trailRef.current.length - 1];
+
+          if (prev) {
+            const dx = tip.x - prev.x;
+            const dy = tip.y - prev.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            const steps = Math.max(1, Math.ceil(dist / 0.02));
+            for (let i = 1; i <= steps; i++) {
+              const t = i / steps;
+              trailRef.current.push({ x: prev.x + dx * t, y: prev.y + dy * t });
+            }
+          } else {
+            trailRef.current.push(tip);
+          }
+
           if (trailRef.current.length > TRAIL_LENGTH)
-            trailRef.current.shift();
+            trailRef.current.splice(0, trailRef.current.length - TRAIL_LENGTH);
         } else {
           trailRef.current = [];
         }

@@ -3,17 +3,21 @@ import Webcam from "react-webcam";
 import { useHandTracking } from "../hooks/useHandTracking";
 import { HandOverlay } from "./HandOverlay";
 
-const WIDTH = 600;
-const HEIGHT = 600;
+interface Props {
+  width: number;
+  height: number;
+}
 
-const CustomWebcam = () => {
+const CustomWebcam = ({ width, height }: Props) => {
   const webcamRef = useRef<Webcam>(null);
-  const { landmarks } = useHandTracking(webcamRef);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useHandTracking(webcamRef, canvasRef);
 
   return (
-    <div style={{ position: "relative", width: WIDTH, height: HEIGHT }}>
-      <Webcam ref={webcamRef} width={WIDTH} height={HEIGHT} />
-      <HandOverlay landmarks={landmarks} width={WIDTH} height={HEIGHT} />
+    <div style={{ position: "relative", width, height }}>
+      <Webcam ref={webcamRef} width={width} height={height} />
+      <HandOverlay ref={canvasRef} width={width} height={height} />
     </div>
   );
 };

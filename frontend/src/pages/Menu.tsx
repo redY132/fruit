@@ -63,11 +63,14 @@ export function Menu() {
 
       {/* Webcam test dialog */}
       <Dialog open={cameraOpen} onOpenChange={setCameraOpen}>
-        <DialogContent>
+        <DialogContent style={{ width: 'fit-content', maxWidth: '90vw' }}>
           <DialogHeader>
             <DialogTitle>Camera Test</DialogTitle>
           </DialogHeader>
-          <CustomWebcam />
+          <CustomWebcam
+            width={Math.round(window.innerWidth * 0.6)}
+            height={Math.round(window.innerHeight * 0.6)}
+          />
         </DialogContent>
       </Dialog>
     </div>

@@ -37,6 +37,7 @@ export function Game({ bombWarning = false }: GameProps) {
   const [scoreKey, setScoreKey] = useState(0);
   const prevComboRef = useRef(0);
   const prevScoreRef = useRef(0);
+  const musicRef = useRef<HTMLAudioElement | null>(null);
   const duration = settingsStore.get().gameDuration;
   const [timeRemaining, setTimeRemaining] = useState(duration);
 
@@ -80,6 +81,18 @@ export function Game({ bombWarning = false }: GameProps) {
       setMyScore(mine.score);
     }
   }
+
+  useEffect(() => {
+    const music = new Audio('/assets/game.mp3');
+    music.loop = true;
+    music.volume = 0.25;
+    music.play().catch(() => {});
+    musicRef.current = music;
+    return () => {
+      music.pause();
+      music.currentTime = 0;
+    };
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -169,6 +182,10 @@ export function Game({ bombWarning = false }: GameProps) {
       setTimeRemaining(prev => {
         if (prev <= 1) {
           clearInterval(id);
+          if (musicRef.current) {
+            musicRef.current.pause();
+            musicRef.current.currentTime = 0;
+          }
           navigate(`/results?lobbyId=${lobbyId}`);
           return 0;
         }

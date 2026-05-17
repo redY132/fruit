@@ -2,6 +2,11 @@ import type { SpawnEvent, GamePhase } from '../types/game';
 import { Fruit } from '../game/Fruit';
 import { trailStore } from './trailStore';
 
+const sfxFruit = new Audio('/assets/fruit.mp3');
+sfxFruit.volume = 0.7;
+const sfxBomb = new Audio('/assets/bomb.mp3');
+sfxBomb.volume = 0.7;
+
 interface ScorePopup {
   x: number;
   y: number;
@@ -73,11 +78,15 @@ export function tick(now: number, screen: { w: number; h: number }): Fruit[] {
           state.localScore -= 250;
           state.comboCount = 0;
           state.popups.push({ x: fruit.x, y: fruit.y, points: -250, startTime: now });
+          sfxBomb.currentTime = 0;
+          sfxBomb.play().catch(() => {});
         } else {
           state.comboCount += 1;
           const points = 10 + 3 * state.comboCount;
           state.localScore += points;
           state.popups.push({ x: fruit.x, y: fruit.y, points, startTime: now });
+          sfxFruit.currentTime = 0;
+          sfxFruit.play().catch(() => {});
         }
         fruit.slice(sliceAngle, now);
       }

@@ -1,14 +1,14 @@
-import type { FruitType, SpawnEvent } from '../types/game';
-import { GRAVITY, computeInitialVelocity } from '../utils/fruitPhysics';
-import { getFruitImage } from './FruitAssets';
+import type { FruitType, SpawnEvent } from "../types/game";
+import { GRAVITY, computeInitialVelocity } from "../utils/fruitPhysics";
+import { getFruitImage } from "./FruitAssets";
 
-const FRUIT_SIZE = 80; // px, rendered square
+const FRUIT_SIZE = 112; // px, rendered square
 const SLICE_DURATION = 500; // ms — how long the sliced halves are visible
 const SLASH_DURATION = 280; // ms — how long the slash line lingers
 const SPREAD_SPEED = 200; // px/s — how fast halves fly apart
 
-const BOMB_COLOR = '#2c3e50';
-const DEFAULT_COLOR = '#e67e22';
+const BOMB_COLOR = "#2c3e50";
+const DEFAULT_COLOR = "#e67e22";
 
 export class Fruit {
   x: number;
@@ -42,7 +42,11 @@ export class Fruit {
 
     this.image = getFruitImage(event.type);
 
-    const { vx0, vy0 } = computeInitialVelocity(event.arc_height, event.x, screen);
+    const { vx0, vy0 } = computeInitialVelocity(
+      event.arc_height,
+      event.x,
+      screen
+    );
     this.vx = vx0;
     this.vy = vy0;
   }
@@ -54,12 +58,26 @@ export class Fruit {
     // Halves fly apart perpendicular to the cut direction
     const perpX = -Math.sin(sliceAngle);
     const perpY = Math.cos(sliceAngle);
-    this.half1 = { x: 0, y: 0, vx: perpX * SPREAD_SPEED, vy: perpY * SPREAD_SPEED - 100 };
-    this.half2 = { x: 0, y: 0, vx: -perpX * SPREAD_SPEED, vy: -perpY * SPREAD_SPEED - 100 };
+    this.half1 = {
+      x: 0,
+      y: 0,
+      vx: perpX * SPREAD_SPEED,
+      vy: perpY * SPREAD_SPEED - 100,
+    };
+    this.half2 = {
+      x: 0,
+      y: 0,
+      vx: -perpX * SPREAD_SPEED,
+      vy: -perpY * SPREAD_SPEED - 100,
+    };
   }
 
   // Returns the slice angle (radians) if the trail intersects this fruit, otherwise null
-  collidesWith(trail: { x: number; y: number }[], canvasW: number, canvasH: number): number | null {
+  collidesWith(
+    trail: { x: number; y: number }[],
+    canvasW: number,
+    canvasH: number
+  ): number | null {
     const r = FRUIT_SIZE / 2;
     for (let i = 1; i < trail.length; i++) {
       const ax = trail[i - 1].x * canvasW;
@@ -109,10 +127,11 @@ export class Fruit {
       return;
     }
 
-    this.vy += GRAVITY * dt;
-    this.x += this.vx * dt;
-    this.y += this.vy * dt;
-    this.angle += this.angularVelocity * dt;
+    const effectiveDt = Math.abs(this.vy) < 10 ? dt * 0.15 : dt;
+    this.vy += GRAVITY * effectiveDt;
+    this.x += this.vx * effectiveDt;
+    this.y += this.vy * effectiveDt;
+    this.angle += this.angularVelocity * effectiveDt;
 
     if (this.y > screenH + 120) {
       this.alive = false;
@@ -130,11 +149,17 @@ export class Fruit {
     ctx.rotate(this.angle);
 
     if (this.image) {
-      ctx.drawImage(this.image, -FRUIT_SIZE / 2, -FRUIT_SIZE / 2, FRUIT_SIZE, FRUIT_SIZE);
+      ctx.drawImage(
+        this.image,
+        -FRUIT_SIZE / 2,
+        -FRUIT_SIZE / 2,
+        FRUIT_SIZE,
+        FRUIT_SIZE
+      );
     } else {
       ctx.beginPath();
       ctx.arc(0, 0, FRUIT_SIZE / 2, 0, Math.PI * 2);
-      ctx.fillStyle = this.type === 'bomb' ? BOMB_COLOR : DEFAULT_COLOR;
+      ctx.fillStyle = this.type === "bomb" ? BOMB_COLOR : DEFAULT_COLOR;
       ctx.fill();
     }
 
@@ -156,10 +181,10 @@ export class Fruit {
       const slashLen = FRUIT_SIZE * 0.85;
       ctx.save();
       ctx.globalAlpha = slashAlpha;
-      ctx.strokeStyle = '#ffffff';
+      ctx.strokeStyle = "#ffffff";
       ctx.lineWidth = 2.5;
-      ctx.lineCap = 'round';
-      ctx.shadowColor = 'rgba(255,255,255,0.9)';
+      ctx.lineCap = "round";
+      ctx.shadowColor = "rgba(255,255,255,0.9)";
       ctx.shadowBlur = 8;
       ctx.beginPath();
       ctx.moveTo(this.x - cosA * slashLen, this.y - sinA * slashLen);
@@ -206,11 +231,17 @@ export class Fruit {
 
     // Draw the image centered at the origin (image center), exactly as in the normal draw
     if (this.image) {
-      ctx.drawImage(this.image, -FRUIT_SIZE / 2, -FRUIT_SIZE / 2, FRUIT_SIZE, FRUIT_SIZE);
+      ctx.drawImage(
+        this.image,
+        -FRUIT_SIZE / 2,
+        -FRUIT_SIZE / 2,
+        FRUIT_SIZE,
+        FRUIT_SIZE
+      );
     } else {
       ctx.beginPath();
       ctx.arc(0, 0, FRUIT_SIZE / 2, 0, Math.PI * 2);
-      ctx.fillStyle = this.type === 'bomb' ? BOMB_COLOR : DEFAULT_COLOR;
+      ctx.fillStyle = this.type === "bomb" ? BOMB_COLOR : DEFAULT_COLOR;
       ctx.fill();
     }
 

@@ -10,8 +10,8 @@ import { loadFruitAssets, FOOD_KEYS } from "../game/FruitAssets";
 import { setSpawnQueue, startMatch, setPhase, getLocalScore, getCombo } from "../store/gameStore";
 import type { SpawnEvent } from "../types/game";
 
-const START_GAP_MS = 3000;
-const END_GAP_MS = 500;
+const START_GAP_MS = 1500;
+const END_GAP_MS = 250;
 const ARC_HEIGHTS = [0.35, 0.45, 0.55, 0.65, 0.75, 0.85];
 
 function formatTime(s: number) {

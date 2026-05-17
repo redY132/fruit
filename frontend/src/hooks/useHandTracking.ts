@@ -163,6 +163,8 @@ export function useHandTracking(
           hand.map(pt => ({ ...pt, x: 1 - pt.x }))
         );
         trailStore.points = trailRef.current;
+        trailStore.canvasW = canvas.width;
+        trailStore.canvasH = canvas.height;
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         drawTrail(ctx, trailRef.current, canvas.width, canvas.height);

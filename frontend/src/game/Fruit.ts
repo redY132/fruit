@@ -42,13 +42,13 @@ export class Fruit {
     this.vy = vy0;
   }
 
-  collidesWith(trail: { x: number; y: number }[], screen: { w: number; h: number }): boolean {
+  collidesWith(trail: { x: number; y: number }[], canvasW: number, canvasH: number): boolean {
     const r = FRUIT_SIZE / 2;
     for (let i = 1; i < trail.length; i++) {
-      const ax = trail[i - 1].x * screen.w;
-      const ay = trail[i - 1].y * screen.h;
-      const bx = trail[i].x * screen.w;
-      const by = trail[i].y * screen.h;
+      const ax = trail[i - 1].x * canvasW;
+      const ay = trail[i - 1].y * canvasH;
+      const bx = trail[i].x * canvasW;
+      const by = trail[i].y * canvasH;
 
       const dx = bx - ax;
       const dy = by - ay;

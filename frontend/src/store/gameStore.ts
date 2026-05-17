@@ -45,7 +45,7 @@ export function tick(now: number, screen: { w: number; h: number }): Fruit[] {
   // Update each fruit and check trail collisions
   for (const fruit of state.fruits) {
     fruit.update(dt, screen.h);
-    if (fruit.alive && fruit.collidesWith(trailStore.points, screen)) {
+    if (fruit.alive && fruit.collidesWith(trailStore.points, trailStore.canvasW, trailStore.canvasH)) {
       fruit.alive = false;
     }
   }

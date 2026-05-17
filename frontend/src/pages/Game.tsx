@@ -29,8 +29,13 @@ export function Game({ bombWarning = false }: GameProps) {
   const [shopOpen, setShopOpen] = useState(false);
   const duration = settingsStore.get().gameDuration;
 
+  function handleBomb() {
+    // TODO: send bomb to other players via websocket
+    console.log('bomb sent');
+  }
+
   return (
-    <GameCanvas bombWarning={bombWarning}>
+    <GameCanvas bombWarning={bombWarning} onBomb={handleBomb}>
       {/* Bomb incoming warning banner */}
       {bombWarning && (
         <div className="absolute top-6 left-1/2 -translate-x-1/2 z-50 animate-pulse">

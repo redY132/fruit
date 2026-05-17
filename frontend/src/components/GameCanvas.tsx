@@ -1,22 +1,17 @@
 import React, { useRef } from 'react';
-import Webcam from 'react-webcam';
-import { useHandTracking } from '../hooks/useHandTracking';
 import { useGameLoop } from '../hooks/useGameLoop';
-import { HandOverlay } from './HandOverlay';
+import CustomWebcam from './Webcam';
 
 interface GameCanvasProps {
   bombWarning?: boolean;
+  onBomb?: () => void;
   children?: React.ReactNode;
 }
 
-export function GameCanvas({ bombWarning = false, children }: GameCanvasProps) {
-  const webcamRef = useRef<Webcam>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+export function GameCanvas({ bombWarning = false, onBomb, children }: GameCanvasProps) {
   const fruitCanvasRef = useRef<HTMLCanvasElement>(null);
-
   const screen = { w: window.innerWidth, h: window.innerHeight };
 
-  useHandTracking(webcamRef, canvasRef);
   useGameLoop(fruitCanvasRef, screen);
 
   return (
@@ -25,20 +20,16 @@ export function GameCanvas({ bombWarning = false, children }: GameCanvasProps) {
         bombWarning ? 'border-[6px] border-destructive' : ''
       }`}
     >
-      {/* Full-screen webcam feed */}
-      <Webcam
-        ref={webcamRef}
-        style={{
-          position: 'absolute',
-          inset: 0,
-          width: '100%',
-          height: '100%',
-          objectFit: 'cover',
-        }}
-        mirrored
-      />
+      {/* Full-screen webcam feed with hand tracking */}
+      <div className="absolute inset-0">
+        <CustomWebcam
+          width={window.innerWidth}
+          height={window.innerHeight}
+          onBomb={onBomb}
+        />
+      </div>
 
-      {/* Fruit physics canvas — sits above webcam, below hand overlay */}
+      {/* Fruit physics canvas — above webcam and hand overlay */}
       <canvas
         ref={fruitCanvasRef}
         width={window.innerWidth}
@@ -50,13 +41,6 @@ export function GameCanvas({ bombWarning = false, children }: GameCanvasProps) {
           height: '100%',
           pointerEvents: 'none',
         }}
-      />
-
-      {/* Trail + hand skeleton overlay — full viewport dimensions */}
-      <HandOverlay
-        ref={canvasRef}
-        width={window.innerWidth}
-        height={window.innerHeight}
       />
 
       {/* Dark scrim so UI elements stay readable over the webcam */}

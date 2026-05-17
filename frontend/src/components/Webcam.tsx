@@ -6,9 +6,10 @@ import { HandOverlay } from "./HandOverlay";
 interface Props {
   width: number;
   height: number;
+  onBomb?: () => void;
 }
 
-const CustomWebcam = ({ width, height }: Props) => {
+const CustomWebcam = ({ width, height, onBomb }: Props) => {
   const webcamRef = useRef<Webcam>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [actualSize, setActualSize] = useState({ width, height });
@@ -25,7 +26,7 @@ const CustomWebcam = ({ width, height }: Props) => {
     return () => observer.disconnect();
   }, []);
 
-  useHandTracking(webcamRef, canvasRef);
+  useHandTracking(webcamRef, canvasRef, onBomb);
 
   return (
     <div style={{ position: "relative", width, height }}>

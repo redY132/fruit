@@ -3,6 +3,22 @@ import type Webcam from 'react-webcam';
 import { HandLandmarker } from '@mediapipe/tasks-vision';
 import { initMediaPipe } from '../lib/mediapipe';
 
+const FINGERTIPS = [4, 8, 12, 16, 20];
+const SPLAY_WINDOW = 8;
+const SPLAY_VELOCITY_THRESHOLD = 0.4;
+const SPLAY_COOLDOWN_MS = 1;
+
+function dist(a: { x: number; y: number }, b: { x: number; y: number }) {
+  return Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
+}
+
+function calcSpread(hand: { x: number; y: number; z: number }[]): number {
+  const palmSize = dist(hand[0], hand[9]);
+  if (palmSize < 0.001) return 0;
+  const avg = FINGERTIPS.reduce((sum, i) => sum + dist(hand[i], hand[9]), 0) / FINGERTIPS.length;
+  return avg / palmSize;
+}
+
 const CONNECTIONS: [number, number][] = [
   [0,1],[1,2],[2,3],[3,4],
   [0,5],[5,6],[6,7],[7,8],
@@ -64,12 +80,17 @@ function drawTrail(
 export function useHandTracking(
   webcamRef: RefObject<Webcam>,
   canvasRef: RefObject<HTMLCanvasElement | null>,
+  onBomb?: () => void,
 ) {
   const landmarkerRef = useRef<HandLandmarker | null>(null);
   const trailRef = useRef<{ x: number; y: number }[]>([]);
   const hadHandRef = useRef(false);
   const smoothedTipRef = useRef<{ x: number; y: number } | null>(null);
+  const spreadHistoryRef = useRef<number[]>([]);
+  const lastBombRef = useRef<number>(0);
+  const bombEffectRef = useRef<{ x: number; y: number; startTime: number } | null>(null);
   const SMOOTHING = 0.5;
+  const BOMB_EFFECT_DURATION = 600;
 
   useEffect(() => {
     initMediaPipe().then(lm => { landmarkerRef.current = lm; });
@@ -111,11 +132,30 @@ export function useHandTracking(
 
           hadHandRef.current = true;
 
+          // splay detection
+          if (onBomb) {
+            const spread = calcSpread(results.landmarks[0]);
+            spreadHistoryRef.current.push(spread);
+            if (spreadHistoryRef.current.length > SPLAY_WINDOW)
+              spreadHistoryRef.current.shift();
+            if (spreadHistoryRef.current.length === SPLAY_WINDOW) {
+              const velocity = spread - spreadHistoryRef.current[0];
+              console.log('spread:', spread.toFixed(3), 'velocity:', velocity.toFixed(3));
+              const now = Date.now();
+              if (velocity > SPLAY_VELOCITY_THRESHOLD && now - lastBombRef.current > SPLAY_COOLDOWN_MS) {
+                lastBombRef.current = now;
+                bombEffectRef.current = { x: tip.x, y: tip.y, startTime: now };
+                onBomb();
+              }
+            }
+          }
+
           if (trailRef.current.length > TRAIL_LENGTH)
             trailRef.current.splice(0, trailRef.current.length - TRAIL_LENGTH);
         } else {
           hadHandRef.current = false;
           smoothedTipRef.current = null;
+          spreadHistoryRef.current = [];
         }
 
         const mirrored = results.landmarks.map(hand =>
@@ -123,12 +163,44 @@ export function useHandTracking(
         );
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         drawTrail(ctx, trailRef.current, canvas.width, canvas.height);
-        // draw(ctx, mirrored, canvas.width, canvas.height);
+
+        if (bombEffectRef.current) {
+          const { x, y, startTime } = bombEffectRef.current;
+          const elapsed = Date.now() - startTime;
+          const t = elapsed / BOMB_EFFECT_DURATION;
+          if (t < 1) {
+            const cx = x * canvas.width;
+            const cy = y * canvas.height;
+            const maxRadius = Math.min(canvas.width, canvas.height) * 0.2;
+
+            // outer shockwave ring
+            ctx.beginPath();
+            ctx.arc(cx, cy, maxRadius * t, 0, 2 * Math.PI);
+            ctx.strokeStyle = `rgba(255, 80, 0, ${1 - t})`;
+            ctx.lineWidth = 6 * (1 - t);
+            ctx.stroke();
+
+            // inner ring
+            ctx.beginPath();
+            ctx.arc(cx, cy, maxRadius * t * 0.5, 0, 2 * Math.PI);
+            ctx.strokeStyle = `rgba(255, 200, 0, ${1 - t})`;
+            ctx.lineWidth = 3 * (1 - t);
+            ctx.stroke();
+
+            // centre flash
+            ctx.beginPath();
+            ctx.arc(cx, cy, maxRadius * 0.08 * (1 - t), 0, 2 * Math.PI);
+            ctx.fillStyle = `rgba(255, 255, 255, ${1 - t})`;
+            ctx.fill();
+          } else {
+            bombEffectRef.current = null;
+          }
+        }
       }
       animId = requestAnimationFrame(detect);
     }
 
     animId = requestAnimationFrame(detect);
     return () => cancelAnimationFrame(animId);
-  }, [webcamRef, canvasRef]);
+  }, [webcamRef, canvasRef, onBomb]);
 }

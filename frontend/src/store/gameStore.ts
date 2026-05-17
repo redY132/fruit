@@ -9,6 +9,9 @@ const state = {
   matchStartTime: null as number | null,
   phase: 'lobby' as GamePhase,
   lastTick: 0,
+  localScore: 0,
+  comboCount: 0,
+  lastSliceTime: 0,
 };
 
 export function setSpawnQueue(queue: SpawnEvent[]): void {
@@ -24,7 +27,13 @@ export function startMatch(now: number): void {
   state.lastTick = now;
   state.fruits = [];
   state.phase = 'playing';
+  state.localScore = 0;
+  state.comboCount = 0;
+  state.lastSliceTime = 0;
 }
+
+export function getLocalScore(): number { return state.localScore; }
+export function getCombo(): number { return state.comboCount; }
 
 export function tick(now: number, screen: { w: number; h: number }): Fruit[] {
   const dt = Math.min((now - state.lastTick) / 1000, 0.1);
@@ -46,6 +55,16 @@ export function tick(now: number, screen: { w: number; h: number }): Fruit[] {
   for (const fruit of state.fruits) {
     fruit.update(dt, screen.h);
     if (fruit.alive && fruit.collidesWith(trailStore.points, trailStore.canvasW, trailStore.canvasH)) {
+      if (state.lastSliceTime > 0 && now - state.lastSliceTime > 500) {
+        state.comboCount = 0;
+      }
+      if (fruit.type === 'bomb') {
+        state.localScore += 250;
+      } else {
+        state.localScore += 10 + 3 * state.comboCount;
+        state.comboCount += 1;
+      }
+      state.lastSliceTime = now;
       fruit.alive = false;
     }
   }

@@ -8,7 +8,7 @@ import { profileStore } from '../store/profileStore';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import { loadFruitAssets } from '../game/FruitAssets';
-import { setSpawnQueue, startMatch, setPhase } from '../store/gameStore';
+import { setSpawnQueue, startMatch, setPhase, getLocalScore, getCombo } from '../store/gameStore';
 import type { SpawnEvent, FruitType } from '../types/game';
 
 function formatTime(s: number) {
@@ -30,6 +30,7 @@ export function Game({ bombWarning = false }: GameProps) {
   const [scores, setScores] = useState<ScoreEntry[]>([]);
   const [myLives, setMyLives] = useState(3);
   const [myScore, setMyScore] = useState(0);
+  const [combo, setCombo] = useState(0);
   const duration = settingsStore.get().gameDuration;
 
   function handleBomb() {
@@ -103,6 +104,14 @@ export function Game({ bombWarning = false }: GameProps) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lobbyId]);
 
+  useEffect(() => {
+    const id = setInterval(() => {
+      setMyScore(getLocalScore());
+      setCombo(getCombo());
+    }, 100);
+    return () => clearInterval(id);
+  }, []);
+
   // Show self in leaderboard immediately even before DB scores load
   const displayScores: ScoreEntry[] = scores.length > 0 ? scores : (
     playerId ? [{
@@ -143,6 +152,15 @@ export function Game({ bombWarning = false }: GameProps) {
             </div>
             <div className="text-xs font-mono text-white/50">score</div>
           </div>
+        </div>
+
+        {/* Scoring diagram */}
+        <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 text-right space-y-0.5">
+          <div className="text-xs font-mono text-white/50">🍎 <span className="text-white/80">10 + 3×combo</span></div>
+          <div className="text-xs font-mono text-white/50">💣 <span className="text-white/80">250 pts</span></div>
+          {combo > 0 && (
+            <div className="text-xs font-mono font-bold text-yellow-400">{combo}x combo</div>
+          )}
         </div>
       </div>
 

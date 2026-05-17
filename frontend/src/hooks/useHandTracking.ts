@@ -2,6 +2,7 @@ import { useEffect, useRef, RefObject } from 'react';
 import type Webcam from 'react-webcam';
 import { HandLandmarker } from '@mediapipe/tasks-vision';
 import { initMediaPipe } from '../lib/mediapipe';
+import { trailStore } from '../store/trailStore';
 
 const FINGERTIPS = [4, 8, 12, 16, 20];
 const SPLAY_WINDOW = 8;
@@ -161,6 +162,8 @@ export function useHandTracking(
         const mirrored = results.landmarks.map(hand =>
           hand.map(pt => ({ ...pt, x: 1 - pt.x }))
         );
+        trailStore.points = trailRef.current;
+
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         drawTrail(ctx, trailRef.current, canvas.width, canvas.height);
 

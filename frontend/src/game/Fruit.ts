@@ -42,6 +42,34 @@ export class Fruit {
     this.vy = vy0;
   }
 
+  collidesWith(trail: { x: number; y: number }[], screen: { w: number; h: number }): boolean {
+    const r = FRUIT_SIZE / 2;
+    for (let i = 1; i < trail.length; i++) {
+      const ax = trail[i - 1].x * screen.w;
+      const ay = trail[i - 1].y * screen.h;
+      const bx = trail[i].x * screen.w;
+      const by = trail[i].y * screen.h;
+
+      const dx = bx - ax;
+      const dy = by - ay;
+      const fx = ax - this.x;
+      const fy = ay - this.y;
+
+      const a = dx * dx + dy * dy;
+      const b = 2 * (fx * dx + fy * dy);
+      const c = fx * fx + fy * fy - r * r;
+      const disc = b * b - 4 * a * c;
+
+      if (disc >= 0 && a > 0) {
+        const t = Math.max(0, Math.min(1, -b / (2 * a)));
+        const nearX = ax + t * dx - this.x;
+        const nearY = ay + t * dy - this.y;
+        if (nearX * nearX + nearY * nearY <= r * r) return true;
+      }
+    }
+    return false;
+  }
+
   update(dt: number, screenH: number): void {
     this.vy += GRAVITY * dt;
     this.x += this.vx * dt;

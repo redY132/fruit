@@ -1,5 +1,6 @@
 import type { SpawnEvent, GamePhase } from '../types/game';
 import { Fruit } from '../game/Fruit';
+import { trailStore } from './trailStore';
 
 // Plain module singleton — RAF reads directly, no React re-renders in hot path
 const state = {
@@ -41,9 +42,12 @@ export function tick(now: number, screen: { w: number; h: number }): Fruit[] {
     state.fruits.push(new Fruit(event, screen));
   }
 
-  // Update each fruit
+  // Update each fruit and check trail collisions
   for (const fruit of state.fruits) {
     fruit.update(dt, screen.h);
+    if (fruit.alive && fruit.collidesWith(trailStore.points, screen)) {
+      fruit.alive = false;
+    }
   }
 
   // Remove dead fruits

@@ -74,27 +74,33 @@ export function Lobby() {
     img.src = objectUrl;
   }
 
-  async function upsertProfile() {
-    if (!playerId) return;
+  async function upsertProfile(userId: string) {
     const avatar = profileStore.get().avatarUrl;
-    await supabase.from('profiles').upsert({
-      id: playerId,
+    const { error } = await supabase.from('profiles').upsert({
+      id: userId,
       display_name: name || 'Player',
       ...(avatar ? { avatar_url: avatar } : {}),
     });
+    if (error) console.error('[upsertProfile] failed:', error.message, error);
   }
 
   async function handleCreate() {
     if (!playerId || loading) return;
     setLoading(true);
     setCreateError('');
-    await upsertProfile();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      setLoading(false);
+      setCreateError('Session expired — please refresh.');
+      return;
+    }
+    await upsertProfile(user.id);
     const code = generateCode();
     const { data, error } = await supabase
       .from('lobbies')
       .insert({
         code,
-        host_id: playerId,
+        host_id: user.id,
         status: 'waiting',
         max_players: 4,
         seed: Math.floor(Math.random() * 2 ** 32),
@@ -102,8 +108,8 @@ export function Lobby() {
       .select('id')
       .single();
     if (!error && data) {
-      console.log('[Create] lobby created:', data.id, 'playerId:', playerId);
-      const { error: joinErr } = await supabase.from('lobby_players').insert({ lobby_id: data.id, player_id: playerId });
+      console.log('[Create] lobby created:', data.id, 'userId:', user.id);
+      const { error: joinErr } = await supabase.from('lobby_players').insert({ lobby_id: data.id, player_id: user.id });
       if (joinErr) console.error('[Create] lobby_players insert failed:', joinErr.message, joinErr);
       else console.log('[Create] lobby_players insert OK');
       setLoading(false);
@@ -119,13 +125,14 @@ export function Lobby() {
     if (!trimmed || !playerId || loading) return;
     setLoading(true);
     setJoinError('');
-    await upsertProfile();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       setLoading(false);
       setJoinError('Session expired — please refresh and try again.');
       return;
     }
+    console.log('[handleJoin] verified user.id:', user.id);
+    await upsertProfile(user.id);
     const { data } = await supabase
       .from('lobbies')
       .select('id')
@@ -135,9 +142,10 @@ export function Lobby() {
     if (data) {
       const { error: joinErr } = await supabase
         .from('lobby_players')
-        .upsert({ lobby_id: data.id, player_id: user.id }, { onConflict: 'lobby_id,player_id', ignoreDuplicates: true });
-      if (joinErr) {
+        .insert({ lobby_id: data.id, player_id: user.id });
+      if (joinErr && joinErr.code !== '23505') { // 23505 = already in lobby (OK)
         setLoading(false);
+        console.error('[handleJoin] lobby_players insert failed:', joinErr);
         setJoinError(`Failed to join: ${joinErr.message}`);
         return;
       }

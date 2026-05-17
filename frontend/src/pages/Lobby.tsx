@@ -23,6 +23,9 @@ export function Lobby() {
   const [code, setCode] = useState('');
   const [name, setName] = useState(profile.name);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(profile.avatarUrl);
+  const [loading, setLoading] = useState(false);
+  const [joinError, setJoinError] = useState('');
+  const [createError, setCreateError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -43,24 +46,82 @@ export function Lobby() {
   function handleNameChange(val: string) {
     setName(val);
     profileStore.save({ name: val });
-    if (playerId) profileStore.syncToSupabase(playerId, val);
+    if (playerId) profileStore.syncToSupabase(playerId, val, profileStore.get().avatarUrl);
   }
 
   function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    const url = URL.createObjectURL(file);
-    setAvatarUrl(url);
-    profileStore.save({ avatarUrl: url });
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      setAvatarUrl(dataUrl);
+      profileStore.save({ avatarUrl: dataUrl });
+      if (playerId) profileStore.syncToSupabase(playerId, name, dataUrl);
+    };
+    reader.readAsDataURL(file);
   }
 
-  function handleJoin() {
+  async function upsertProfile() {
+    if (!playerId) return;
+    const avatar = profileStore.get().avatarUrl;
+    await supabase.from('profiles').upsert({
+      id: playerId,
+      display_name: name || 'Player',
+      ...(avatar ? { avatar_url: avatar } : {}),
+    });
+  }
+
+  async function handleCreate() {
+    if (!playerId || loading) return;
+    setLoading(true);
+    setCreateError('');
+    await upsertProfile();
+    const code = generateCode();
+    const { data, error } = await supabase
+      .from('lobbies')
+      .insert({
+        code,
+        host_id: playerId,
+        status: 'waiting',
+        max_players: 4,
+        seed: Math.floor(Math.random() * 2 ** 32),
+      })
+      .select('id')
+      .single();
+    if (!error && data) {
+      console.log('[Create] lobby created:', data.id, 'playerId:', playerId);
+      const { error: joinErr } = await supabase.from('lobby_players').insert({ lobby_id: data.id, player_id: playerId });
+      if (joinErr) console.error('[Create] lobby_players insert failed:', joinErr.message, joinErr);
+      else console.log('[Create] lobby_players insert OK');
+      setLoading(false);
+      navigate(`/room?code=${code}&lobbyId=${data.id}`);
+    } else {
+      setLoading(false);
+      setCreateError(error?.message ?? 'Failed to create room. Try again.');
+    }
+  }
+
+  async function handleJoin() {
     const trimmed = code.trim().toUpperCase();
-    if (trimmed.length > 0) navigate(`/room?code=${trimmed}`);
-  }
-
-  function handleCreate() {
-    navigate(`/room?code=${generateCode()}`);
+    if (!trimmed || !playerId || loading) return;
+    setLoading(true);
+    setJoinError('');
+    await upsertProfile();
+    const { data } = await supabase
+      .from('lobbies')
+      .select('id')
+      .eq('code', trimmed)
+      .eq('status', 'waiting')
+      .single();
+    if (data) {
+      await supabase.from('lobby_players').insert({ lobby_id: data.id, player_id: playerId });
+      setLoading(false);
+      navigate(`/room?code=${trimmed}&lobbyId=${data.id}`);
+    } else {
+      setLoading(false);
+      setJoinError('Room not found or already started.');
+    }
   }
 
   return (
@@ -103,7 +164,6 @@ export function Lobby() {
                   {name ? name[0].toUpperCase() : '?'}
                 </span>
               )}
-              {/* Camera overlay on hover */}
               <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
                 <Camera size={20} className="text-white" />
               </div>
@@ -135,7 +195,8 @@ export function Lobby() {
 
           <button
             onClick={() => setShowJoin(true)}
-            className="w-full text-white py-4 rounded-full font-bold text-lg transition-colors active:scale-95"
+            disabled={loading || !playerId}
+            className="w-full text-white py-4 rounded-full font-bold text-lg transition-colors active:scale-95 disabled:opacity-50"
             style={{ backgroundColor: BROWN, boxShadow: SHADOW }}
           >
             Join Room
@@ -143,11 +204,15 @@ export function Lobby() {
 
           <button
             onClick={handleCreate}
-            className="w-full text-white py-4 rounded-full font-bold text-lg transition-colors active:scale-95"
+            disabled={loading || !playerId}
+            className="w-full text-white py-4 rounded-full font-bold text-lg transition-colors active:scale-95 disabled:opacity-50"
             style={{ backgroundColor: BROWN, boxShadow: SHADOW }}
           >
-            + Create Room
+            {loading ? 'Creating…' : !playerId ? 'Connecting…' : '+ Create Room'}
           </button>
+          {createError && (
+            <p className="text-sm text-red-500 text-center -mt-1">{createError}</p>
+          )}
         </div>
       </div>
 
@@ -163,7 +228,7 @@ export function Lobby() {
       {showJoin && (
         <div
           className="fixed inset-0 bg-black/30 flex items-center justify-center z-50"
-          onClick={() => setShowJoin(false)}
+          onClick={() => { setShowJoin(false); setJoinError(''); }}
         >
           <div
             className="bg-white rounded-2xl p-8 w-[340px] shadow-2xl flex flex-col items-center gap-6"
@@ -179,14 +244,17 @@ export function Lobby() {
               maxLength={6}
               placeholder="ABC123"
               value={code}
-              onChange={e => setCode(e.target.value.toUpperCase())}
+              onChange={e => { setCode(e.target.value.toUpperCase()); setJoinError(''); }}
               onKeyDown={e => e.key === 'Enter' && handleJoin()}
               className="w-full text-center text-3xl font-mono tracking-widest border-2 rounded-xl py-3 px-4 outline-none"
-              style={{ borderColor: BROWN, color: BROWN }}
+              style={{ borderColor: joinError ? '#ef4444' : BROWN, color: BROWN }}
             />
+            {joinError && (
+              <p className="text-sm text-red-500 -mt-4">{joinError}</p>
+            )}
             <div className="flex gap-3 w-full">
               <button
-                onClick={() => setShowJoin(false)}
+                onClick={() => { setShowJoin(false); setJoinError(''); }}
                 className="flex-1 py-3 rounded-full font-semibold text-sm border-2 transition-colors"
                 style={{ borderColor: BROWN, color: BROWN }}
               >
@@ -194,10 +262,11 @@ export function Lobby() {
               </button>
               <button
                 onClick={handleJoin}
-                className="flex-1 py-3 rounded-full font-bold text-sm text-white transition-colors"
+                disabled={loading}
+                className="flex-1 py-3 rounded-full font-bold text-sm text-white transition-colors disabled:opacity-50"
                 style={{ backgroundColor: BROWN, boxShadow: SHADOW }}
               >
-                Join
+                {loading ? 'Joining…' : 'Join'}
               </button>
             </div>
           </div>

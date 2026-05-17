@@ -5,13 +5,11 @@ import { Room } from "../pages/Room";
 import { Game } from "../pages/Game";
 import { Results } from "../pages/Results";
 import { CameraTest } from "../pages/CameraTest";
-import { SignIn } from "../pages/SignIn";
 import { ShopOverlay } from "../components/ShopOverlay";
 import { ProtectedRoute } from "../components/ProtectedRoute";
 import React from "react";
 
 export const router = createBrowserRouter([
-  { path: "/signin", Component: SignIn },
   {
     Component: ProtectedRoute,
     children: [

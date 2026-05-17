@@ -1,21 +1,15 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router';
-import { GameCanvas } from '../components/GameCanvas';
-import { Leaderboard, type ScoreEntry } from '../components/Leaderboard';
-import { LivesDisplay } from '../components/LivesDisplay';
-import { settingsStore } from '../store/settingsStore';
-import { profileStore } from '../store/profileStore';
-import { useAuth } from '../hooks/useAuth';
-import { supabase } from '../lib/supabase';
-<<<<<<< HEAD
-import { loadFruitAssets } from '../game/FruitAssets';
-import { setSpawnQueue, startMatch, setPhase, getLocalScore, getCombo } from '../store/gameStore';
-import type { SpawnEvent, FruitType } from '../types/game';
-=======
-import { loadFruitAssets, FOOD_KEYS } from '../game/FruitAssets';
-import { setSpawnQueue, startMatch, setPhase } from '../store/gameStore';
-import type { SpawnEvent } from '../types/game';
->>>>>>> 20bf562e8c73b1ad1a4abfdaec931198f4a82646
+import React, { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router";
+import { GameCanvas } from "../components/GameCanvas";
+import { Leaderboard, type ScoreEntry } from "../components/Leaderboard";
+import { LivesDisplay } from "../components/LivesDisplay";
+import { settingsStore } from "../store/settingsStore";
+import { profileStore } from "../store/profileStore";
+import { useAuth } from "../hooks/useAuth";
+import { supabase } from "../lib/supabase";
+import { loadFruitAssets, FOOD_KEYS } from "../game/FruitAssets";
+import { setSpawnQueue, startMatch, setPhase } from "../store/gameStore";
+import type { SpawnEvent } from "../types/game";
 
 const START_GAP_MS = 3000;
 const END_GAP_MS = 500;
@@ -23,7 +17,7 @@ const END_GAP_MS = 500;
 function formatTime(s: number) {
   const m = Math.floor(s / 60);
   const sec = s % 60;
-  return `${m}:${String(sec).padStart(2, '0')}`;
+  return `${m}:${String(sec).padStart(2, "0")}`;
 }
 
 interface GameProps {
@@ -34,7 +28,7 @@ export function Game({ bombWarning = false }: GameProps) {
   const navigate = useNavigate();
   const { playerId } = useAuth();
   const [searchParams] = useSearchParams();
-  const lobbyId = searchParams.get('lobbyId') ?? '';
+  const lobbyId = searchParams.get("lobbyId") ?? "";
 
   const [scores, setScores] = useState<ScoreEntry[]>([]);
   const [myLives, setMyLives] = useState(3);
@@ -44,41 +38,52 @@ export function Game({ bombWarning = false }: GameProps) {
 
   function handleBomb() {
     // TODO: send bomb to other players via websocket
-    console.log('bomb sent');
+    console.log("bomb sent");
   }
 
   async function fetchScores() {
     if (!lobbyId) return;
     const { data: lps } = await supabase
-      .from('lobby_players')
-      .select('player_id, score, lives, eliminated_at')
-      .eq('lobby_id', lobbyId)
-      .order('score', { ascending: false });
+      .from("lobby_players")
+      .select("player_id, score, lives, eliminated_at")
+      .eq("lobby_id", lobbyId)
+      .order("score", { ascending: false });
     if (!lps?.length) return;
     const { data: profs } = await supabase
-      .from('profiles')
-      .select('id, display_name')
-      .in('id', lps.map(p => p.player_id));
-    const nameMap = Object.fromEntries(profs?.map(p => [p.id, p.display_name]) ?? []);
+      .from("profiles")
+      .select("id, display_name")
+      .in(
+        "id",
+        lps.map((p) => p.player_id)
+      );
+    const nameMap = Object.fromEntries(
+      profs?.map((p) => [p.id, p.display_name]) ?? []
+    );
     const entries: ScoreEntry[] = lps.map((lp, i) => ({
       id: lp.player_id,
       rank: i + 1,
-      name: nameMap[lp.player_id] ?? 'Unknown',
+      name: nameMap[lp.player_id] ?? "Unknown",
       score: lp.score,
       hearts: lp.lives,
       dead: lp.eliminated_at !== null,
     }));
     setScores(entries);
-    const mine = entries.find(e => e.id === playerId);
-    if (mine) { setMyLives(mine.hearts); setMyScore(mine.score); }
+    const mine = entries.find((e) => e.id === playerId);
+    if (mine) {
+      setMyLives(mine.hearts);
+      setMyScore(mine.score);
+    }
   }
 
   useEffect(() => {
     let mounted = true;
-    const allTypes = [...FOOD_KEYS, 'bomb'];
+    const allTypes = [...FOOD_KEYS, "bomb"];
     const xs = [0.2, 0.5, 0.8];
     const durationMs = duration * 1000;
-    const n = Math.max(2, Math.floor(durationMs / ((START_GAP_MS + END_GAP_MS) / 2)));
+    const n = Math.max(
+      2,
+      Math.floor(durationMs / ((START_GAP_MS + END_GAP_MS) / 2))
+    );
     let t = 0;
     const devQueue: SpawnEvent[] = Array.from({ length: n }, (_, i) => {
       const gap = START_GAP_MS + (END_GAP_MS - START_GAP_MS) * (i / (n - 1));
@@ -98,13 +103,13 @@ export function Game({ bombWarning = false }: GameProps) {
     });
     return () => {
       mounted = false;
-      setPhase('lobby');
+      setPhase("lobby");
     };
   }, []);
 
   useEffect(() => {
     fetchScores();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lobbyId, playerId]);
 
   useEffect(() => {
@@ -112,13 +117,20 @@ export function Game({ bombWarning = false }: GameProps) {
     const channel = supabase
       .channel(`game-scores-${lobbyId}`)
       .on(
-        'postgres_changes' as any,
-        { event: 'UPDATE', schema: 'public', table: 'lobby_players', filter: `lobby_id=eq.${lobbyId}` },
+        "postgres_changes" as any,
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "lobby_players",
+          filter: `lobby_id=eq.${lobbyId}`,
+        },
         () => fetchScores()
       )
       .subscribe();
-    return () => { channel.unsubscribe(); };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => {
+      channel.unsubscribe();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lobbyId]);
 
   useEffect(() => {
@@ -130,16 +142,21 @@ export function Game({ bombWarning = false }: GameProps) {
   }, []);
 
   // Show self in leaderboard immediately even before DB scores load
-  const displayScores: ScoreEntry[] = scores.length > 0 ? scores : (
-    playerId ? [{
-      id: playerId,
-      rank: 1,
-      name: profileStore.get().name || 'Player',
-      score: myScore,
-      hearts: myLives,
-      dead: false,
-    }] : []
-  );
+  const displayScores: ScoreEntry[] =
+    scores.length > 0
+      ? scores
+      : playerId
+      ? [
+          {
+            id: playerId,
+            rank: 1,
+            name: profileStore.get().name || "Player",
+            score: myScore,
+            hearts: myLives,
+            dead: false,
+          },
+        ]
+      : [];
 
   return (
     <GameCanvas bombWarning={bombWarning} onBomb={handleBomb}>
@@ -154,8 +171,12 @@ export function Game({ bombWarning = false }: GameProps) {
 
       {/* Top Center: Timer */}
       <div className="absolute top-6 left-1/2 -translate-x-1/2 flex flex-col items-center z-10">
-        <div className="text-4xl font-mono font-black text-white tracking-tight">{formatTime(duration)}</div>
-        <div className="text-xs font-bold text-white/70 uppercase tracking-widest">time remaining</div>
+        <div className="text-4xl font-mono font-black text-white tracking-tight">
+          {formatTime(duration)}
+        </div>
+        <div className="text-xs font-bold text-white/70 uppercase tracking-widest">
+          time remaining
+        </div>
       </div>
 
       {/* Top Right: Player Stats */}
@@ -173,27 +194,33 @@ export function Game({ bombWarning = false }: GameProps) {
 
         {/* Scoring diagram */}
         <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 text-right space-y-0.5">
-          <div className="text-xs font-mono text-white/50">🍎 <span className="text-white/80">10 + 3×combo</span></div>
-          <div className="text-xs font-mono text-white/50">💣 <span className="text-white/80">250 pts</span></div>
+          <div className="text-xs font-mono text-white/50">
+            🍎 <span className="text-white/80">10 + 3×combo</span>
+          </div>
+          <div className="text-xs font-mono text-white/50">
+            💣 <span className="text-white/80">250 pts</span>
+          </div>
           {combo > 0 && (
-            <div className="text-xs font-mono font-bold text-yellow-400">{combo}x combo</div>
+            <div className="text-xs font-mono font-bold text-yellow-400">
+              {combo}x combo
+            </div>
           )}
         </div>
       </div>
 
       {/* Bottom Left: Live Leaderboard */}
-      <Leaderboard entries={displayScores} localPlayerId={playerId ?? ''} />
+      <Leaderboard entries={displayScores} localPlayerId={playerId ?? ""} />
 
       {/* Dev navigation */}
       <div className="absolute bottom-6 right-6 flex flex-col gap-2 opacity-0 hover:opacity-100 transition-opacity z-50">
         <button
-          onClick={() => navigate('/bomb')}
+          onClick={() => navigate("/bomb")}
           className="text-white bg-destructive/50 hover:bg-destructive px-3 py-2 text-xs rounded font-bold"
         >
           Test Bomb Warning
         </button>
         <button
-          onClick={() => navigate('/results')}
+          onClick={() => navigate("/results")}
           className="text-white bg-black/50 hover:bg-black/80 px-3 py-2 text-xs rounded font-bold"
         >
           Go to Results

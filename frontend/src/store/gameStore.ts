@@ -53,19 +53,22 @@ export function tick(now: number, screen: { w: number; h: number }): Fruit[] {
 
   // Update each fruit and check trail collisions
   for (const fruit of state.fruits) {
-    fruit.update(dt, screen.h);
-    if (fruit.alive && fruit.collidesWith(trailStore.points, trailStore.canvasW, trailStore.canvasH)) {
-      if (state.lastSliceTime > 0 && now - state.lastSliceTime > 500) {
-        state.comboCount = 0;
+    fruit.update(dt, screen.h, now);
+    if (fruit.alive && !fruit.sliced) {
+      const sliceAngle = fruit.collidesWith(trailStore.points, trailStore.canvasW, trailStore.canvasH);
+      if (sliceAngle !== null) {
+        if (state.lastSliceTime > 0 && now - state.lastSliceTime > 500) {
+          state.comboCount = 0;
+        }
+        if (fruit.type === 'bomb') {
+          state.localScore += 250;
+        } else {
+          state.localScore += 10 + 3 * state.comboCount;
+          state.comboCount += 1;
+        }
+        state.lastSliceTime = now;
+        fruit.slice(sliceAngle, now);
       }
-      if (fruit.type === 'bomb') {
-        state.localScore += 250;
-      } else {
-        state.localScore += 10 + 3 * state.comboCount;
-        state.comboCount += 1;
-      }
-      state.lastSliceTime = now;
-      fruit.alive = false;
     }
   }
 

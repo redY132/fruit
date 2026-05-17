@@ -17,7 +17,7 @@ export function useGameLoop(
           ctx.clearRect(0, 0, canvas.width, canvas.height);
           const fruits = tick(now, screen);
           for (const fruit of fruits) {
-            fruit.draw(ctx);
+            fruit.draw(ctx, now);
           }
         }
       }

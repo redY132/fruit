@@ -69,6 +69,10 @@ export class Fruit {
 
       const dx = bx - ax;
       const dy = by - ay;
+
+      // Stationary hand: segment too short to be a real swipe, skip it
+      if (dx * dx + dy * dy < 9) continue;
+
       const fx = ax - this.x;
       const fy = ay - this.y;
 

@@ -31,13 +31,28 @@ export function useGameLoop(
             ctx.globalAlpha = alpha;
             ctx.translate(popup.x, popup.y - yOffset);
             ctx.scale(scale, scale);
-            ctx.font = 'bold 26px "Courier New", monospace';
+            const text = popup.points < 0 ? `${popup.points}` : `+${popup.points}`;
+            const fontSize = 26;
+            ctx.font = `bold ${fontSize}px "Baloo Bhaijaan 2", sans-serif`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.shadowColor = 'rgba(0,0,0,0.7)';
-            ctx.shadowBlur = 6;
-            ctx.fillStyle = popup.points < 0 ? '#ff3333' : '#FFD700';
-            ctx.fillText(popup.points < 0 ? `${popup.points}` : `+${popup.points}`, 0, 0);
+            const grad = ctx.createLinearGradient(0, -fontSize / 2, 0, fontSize / 2);
+            if (popup.points < 0) {
+              grad.addColorStop(0, '#C04040');
+              grad.addColorStop(1, '#F08080');
+            } else {
+              grad.addColorStop(0, '#C07878');
+              grad.addColorStop(1, '#F8E0E0');
+            }
+            ctx.shadowColor = 'rgba(0,0,0,0.65)';
+            ctx.shadowBlur = 8;
+            ctx.shadowOffsetX = 2;
+            ctx.shadowOffsetY = 3;
+            ctx.strokeStyle = 'rgba(20,15,15,0.85)';
+            ctx.lineWidth = 1;
+            ctx.strokeText(text, 0, 0);
+            ctx.fillStyle = grad;
+            ctx.fillText(text, 0, 0);
             ctx.restore();
           }
         }

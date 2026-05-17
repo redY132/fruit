@@ -241,33 +241,21 @@ export function Game({ bombWarning = false }: GameProps) {
 
       {/* Top Right: Player Stats */}
       <div className="absolute top-6 right-6 flex flex-col items-end gap-1 z-10">
-        {/* Large gradient combo counter */}
-        {combo > 0 && (
-          <div
-            key={comboKey}
-            className="font-black leading-none tracking-tighter select-none"
-            style={{
-              fontSize: '5.5rem',
-              backgroundImage: 'linear-gradient(180deg, #7A6565 0%, #D4AFAF 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-              filter: 'drop-shadow(0 2px 12px rgba(122,101,101,0.55))',
-              animation: 'comboPunch 0.28s cubic-bezier(0.36,0.07,0.19,0.97)',
-            }}
-          >
-            {combo}x
-          </div>
-        )}
-
         {/* Score box */}
         <div className="flex items-center bg-black/40 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/10">
           <div className="flex flex-col items-end">
             <div
               key={scoreKey}
-              className="text-4xl font-mono font-black leading-none tracking-tight"
+              className="text-4xl font-black leading-none tracking-tight"
               style={{
-                color: myScore < 0 ? '#ff6b6b' : 'white',
+                fontFamily: "'Baloo Bhaijaan 2', sans-serif",
+                backgroundImage: myScore < 0
+                  ? 'linear-gradient(180deg, #C04040 0%, #F08080 100%)'
+                  : 'linear-gradient(180deg, #C07878 0%, #F8E0E0 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                filter: 'drop-shadow(1px 2px 5px rgba(0,0,0,0.6))',
                 animation: 'scorePunch 0.25s ease-out',
               }}
             >
@@ -290,6 +278,28 @@ export function Game({ bombWarning = false }: GameProps) {
           </div>
         </div>
       </div>
+
+      {/* Bottom Right: Combo counter */}
+      {combo > 0 && (
+        <div className="absolute bottom-6 right-6 z-10 select-none">
+          <div
+            key={comboKey}
+            className="font-black leading-none tracking-tighter"
+            style={{
+              fontFamily: "'Baloo Bhaijaan 2', sans-serif",
+              fontSize: '5.5rem',
+              backgroundImage: 'linear-gradient(180deg, #C07878 0%, #F8E0E0 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+              filter: 'drop-shadow(2px 3px 8px rgba(0,0,0,0.65))',
+              animation: 'comboPunch 0.28s cubic-bezier(0.36,0.07,0.19,0.97)',
+            }}
+          >
+            {combo}x
+          </div>
+        </div>
+      )}
 
       {/* Bottom Left: Live Leaderboard */}
       <Leaderboard entries={displayScores} localPlayerId={playerId ?? ""} />

@@ -4,13 +4,8 @@ import { getFruitImage } from './FruitAssets';
 
 const FRUIT_SIZE = 80; // px, rendered square
 
-const FRUIT_COLORS: Record<FruitType, string> = {
-  apple:      '#e74c3c',
-  orange:     '#e67e22',
-  watermelon: '#27ae60',
-  mango:      '#f1c40f',
-  bomb:       '#2c3e50',
-};
+const BOMB_COLOR = '#2c3e50';
+const DEFAULT_COLOR = '#e67e22';
 
 export class Fruit {
   x: number;
@@ -31,11 +26,7 @@ export class Fruit {
     this.angularVelocity = (Math.random() - 0.5) * 4; // rad/s
     this.alive = true;
 
-    try {
-      this.image = getFruitImage(event.type);
-    } catch {
-      this.image = null;
-    }
+    this.image = getFruitImage(event.type);
 
     const { vx0, vy0 } = computeInitialVelocity(event.arc_height, event.x, screen);
     this.vx = vx0;
@@ -91,7 +82,7 @@ export class Fruit {
     } else {
       ctx.beginPath();
       ctx.arc(0, 0, FRUIT_SIZE / 2, 0, Math.PI * 2);
-      ctx.fillStyle = FRUIT_COLORS[this.type];
+      ctx.fillStyle = this.type === 'bomb' ? BOMB_COLOR : DEFAULT_COLOR;
       ctx.fill();
     }
 

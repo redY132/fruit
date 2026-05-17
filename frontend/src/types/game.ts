@@ -1,4 +1,4 @@
-export type FruitType = 'apple' | 'orange' | 'watermelon' | 'mango' | 'bomb';
+export type FruitType = string;
 
 export interface SpawnEvent {
   id: string;

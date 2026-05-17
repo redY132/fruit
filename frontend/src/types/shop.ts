@@ -1,4 +1,4 @@
-export type SabotageKind = 'bomb' | 'freeze' | 'frenzy' | 'parry';
+export type SabotageKind = 'bomb' | 'freeze' | 'frenzy';
 
 export interface ShopItem {
   kind: SabotageKind;

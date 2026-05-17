@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { ShoppingBag } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { GameCanvas } from '../components/GameCanvas';
 import { Leaderboard, type ScoreEntry } from '../components/Leaderboard';
 import { LivesDisplay } from '../components/LivesDisplay';
-import { ShopOverlay, ShopTriggerZones } from '../components/ShopOverlay';
 import { settingsStore } from '../store/settingsStore';
+import { profileStore } from '../store/profileStore';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import { loadFruitAssets } from '../game/FruitAssets';
@@ -28,7 +27,6 @@ export function Game({ bombWarning = false }: GameProps) {
   const [searchParams] = useSearchParams();
   const lobbyId = searchParams.get('lobbyId') ?? '';
 
-  const [shopOpen, setShopOpen] = useState(false);
   const [scores, setScores] = useState<ScoreEntry[]>([]);
   const [myLives, setMyLives] = useState(3);
   const [myScore, setMyScore] = useState(0);
@@ -105,7 +103,18 @@ export function Game({ bombWarning = false }: GameProps) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lobbyId]);
 
-  const displayScores = scores.length > 0 ? scores : [];
+  // Show self in leaderboard immediately even before DB scores load
+  const displayScores: ScoreEntry[] = scores.length > 0 ? scores : (
+    playerId ? [{
+      id: playerId,
+      rank: 1,
+      name: profileStore.get().name || 'Player',
+      score: myScore,
+      hearts: myLives,
+      dead: false,
+    }] : []
+  );
+
   return (
     <GameCanvas bombWarning={bombWarning} onBomb={handleBomb}>
       {/* Bomb incoming warning banner */}
@@ -135,29 +144,10 @@ export function Game({ bombWarning = false }: GameProps) {
             <div className="text-xs font-mono text-white/50">score</div>
           </div>
         </div>
-
-        <div className="bg-primary text-white px-4 py-1.5 rounded-full font-black italic text-lg transform -rotate-2">
-          ×1 COMBO
-        </div>
-
-        <button
-          onClick={() => setShopOpen(true)}
-          className="mt-4 bg-white/10 hover:bg-white/20 backdrop-blur-md p-4 rounded-full border border-white/20 transition-all text-white relative group"
-        >
-          <ShoppingBag size={24} />
-          <div className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full animate-ping" />
-          <div className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full" />
-        </button>
       </div>
 
       {/* Bottom Left: Live Leaderboard */}
       <Leaderboard entries={displayScores} localPlayerId={playerId ?? ''} />
-
-      {/* Corner Trigger Zones */}
-      <ShopTriggerZones />
-
-      {/* Shop drawer */}
-      <ShopOverlay open={shopOpen} onClose={() => setShopOpen(false)} points={myScore} />
 
       {/* Dev navigation */}
       <div className="absolute bottom-6 right-6 flex flex-col gap-2 opacity-0 hover:opacity-100 transition-opacity z-50">

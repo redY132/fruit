@@ -11,6 +11,9 @@ import { loadFruitAssets, FOOD_KEYS } from '../game/FruitAssets';
 import { setSpawnQueue, startMatch, setPhase } from '../store/gameStore';
 import type { SpawnEvent } from '../types/game';
 
+const START_GAP_MS = 3000;
+const END_GAP_MS = 500;
+
 function formatTime(s: number) {
   const m = Math.floor(s / 60);
   const sec = s % 60;
@@ -67,13 +70,21 @@ export function Game({ bombWarning = false }: GameProps) {
     let mounted = true;
     const allTypes = [...FOOD_KEYS, 'bomb'];
     const xs = [0.2, 0.5, 0.8];
-    const devQueue: SpawnEvent[] = Array.from({ length: 20 }, (_, i) => ({
-      id: `fruit-${i}`,
-      type: allTypes[i % allTypes.length],
-      spawnAt: i * 2750,
-      x: xs[i % 3],
-      arc_height: 0.6,
-    }));
+    const durationMs = duration * 1000;
+    const n = Math.max(2, Math.floor(durationMs / ((START_GAP_MS + END_GAP_MS) / 2)));
+    let t = 0;
+    const devQueue: SpawnEvent[] = Array.from({ length: n }, (_, i) => {
+      const gap = START_GAP_MS + (END_GAP_MS - START_GAP_MS) * (i / (n - 1));
+      const spawnAt = t;
+      t += gap;
+      return {
+        id: `fruit-${i}`,
+        type: allTypes[i % allTypes.length],
+        spawnAt,
+        x: xs[i % xs.length],
+        arc_height: 0.6,
+      };
+    });
     setSpawnQueue(devQueue);
     loadFruitAssets().then(() => {
       if (mounted) startMatch(performance.now());

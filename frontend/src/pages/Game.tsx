@@ -8,6 +8,9 @@ import { ShopOverlay, ShopTriggerZones } from '../components/ShopOverlay';
 import { settingsStore } from '../store/settingsStore';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
+import { loadFruitAssets } from '../game/FruitAssets';
+import { setSpawnQueue, startMatch, setPhase } from '../store/gameStore';
+import type { SpawnEvent, FruitType } from '../types/game';
 
 function formatTime(s: number) {
   const m = Math.floor(s / 60);
@@ -61,6 +64,27 @@ export function Game({ bombWarning = false }: GameProps) {
     const mine = entries.find(e => e.id === playerId);
     if (mine) { setMyLives(mine.hearts); setMyScore(mine.score); }
   }
+
+  useEffect(() => {
+    let mounted = true;
+    const types = ['apple', 'orange', 'watermelon', 'mango', 'bomb'] as FruitType[];
+    const xs = [0.2, 0.5, 0.8];
+    const devQueue: SpawnEvent[] = Array.from({ length: 20 }, (_, i) => ({
+      id: `fruit-${i}`,
+      type: types[i % 5],
+      spawnAt: i * 2750,
+      x: xs[i % 3],
+      arc_height: 0.6,
+    }));
+    setSpawnQueue(devQueue);
+    loadFruitAssets().then(() => {
+      if (mounted) startMatch(performance.now());
+    });
+    return () => {
+      mounted = false;
+      setPhase('lobby');
+    };
+  }, []);
 
   useEffect(() => {
     fetchScores();

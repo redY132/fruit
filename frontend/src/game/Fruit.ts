@@ -4,6 +4,14 @@ import { getFruitImage } from './FruitAssets';
 
 const FRUIT_SIZE = 80; // px, rendered square
 
+const FRUIT_COLORS: Record<FruitType, string> = {
+  apple:      '#e74c3c',
+  orange:     '#e67e22',
+  watermelon: '#27ae60',
+  mango:      '#f1c40f',
+  bomb:       '#2c3e50',
+};
+
 export class Fruit {
   x: number;
   y: number;
@@ -13,7 +21,7 @@ export class Fruit {
   angularVelocity: number;
   alive: boolean;
   readonly type: FruitType;
-  private image: HTMLImageElement;
+  private image: HTMLImageElement | null;
 
   constructor(event: SpawnEvent, screen: { w: number; h: number }) {
     this.type = event.type;
@@ -22,7 +30,12 @@ export class Fruit {
     this.angle = 0;
     this.angularVelocity = (Math.random() - 0.5) * 4; // rad/s
     this.alive = true;
-    this.image = getFruitImage(event.type);
+
+    try {
+      this.image = getFruitImage(event.type);
+    } catch {
+      this.image = null;
+    }
 
     const { vx0, vy0 } = computeInitialVelocity(event.arc_height, event.x, screen);
     this.vx = vx0;
@@ -44,7 +57,16 @@ export class Fruit {
     ctx.save();
     ctx.translate(this.x, this.y);
     ctx.rotate(this.angle);
-    ctx.drawImage(this.image, -FRUIT_SIZE / 2, -FRUIT_SIZE / 2, FRUIT_SIZE, FRUIT_SIZE);
+
+    if (this.image) {
+      ctx.drawImage(this.image, -FRUIT_SIZE / 2, -FRUIT_SIZE / 2, FRUIT_SIZE, FRUIT_SIZE);
+    } else {
+      ctx.beginPath();
+      ctx.arc(0, 0, FRUIT_SIZE / 2, 0, Math.PI * 2);
+      ctx.fillStyle = FRUIT_COLORS[this.type];
+      ctx.fill();
+    }
+
     ctx.restore();
   }
 }

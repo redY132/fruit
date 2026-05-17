@@ -129,7 +129,7 @@ export function Lobby() {
     if (data) {
       const { error: joinErr } = await supabase
         .from('lobby_players')
-        .upsert({ lobby_id: data.id, player_id: playerId }, { onConflict: 'lobby_id,player_id' });
+        .upsert({ lobby_id: data.id, player_id: playerId }, { onConflict: 'lobby_id,player_id', ignoreDuplicates: true });
       if (joinErr) {
         setLoading(false);
         setJoinError(`Failed to join: ${joinErr.message}`);

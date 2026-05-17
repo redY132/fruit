@@ -87,11 +87,15 @@ export function Room() {
 
   const { broadcast } = useRealtimeChannel(
     lobbyId ? lobbyChannel(lobbyId) : '',
-    (event) => {
+    (event, payload) => {
       if (event === LobbyEvent.PlayerJoined || event === LobbyEvent.PlayerReady) {
         fetchPlayers();
       }
       if (event === LobbyEvent.MatchStart) {
+        const p = payload as { lobbyId: string; duration?: number };
+        if (typeof p?.duration === 'number') {
+          settingsStore.save({ gameDuration: p.duration });
+        }
         navigate(`/game?lobbyId=${lobbyId}`);
       }
     }
@@ -129,7 +133,7 @@ export function Room() {
     await supabase.functions.invoke('generate-fruit-queue', {
       body: { lobby_id: lobbyId, gameDuration: duration },
     });
-    broadcast(LobbyEvent.MatchStart, { lobbyId });
+    broadcast(LobbyEvent.MatchStart, { lobbyId, duration });
     navigate(`/game?lobbyId=${lobbyId}`);
   }
 

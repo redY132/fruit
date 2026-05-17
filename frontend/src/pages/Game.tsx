@@ -8,7 +8,7 @@ import { profileStore } from "../store/profileStore";
 import { useAuth } from "../hooks/useAuth";
 import { supabase } from "../lib/supabase";
 import { loadFruitAssets, FOOD_KEYS } from "../game/FruitAssets";
-import { setSpawnQueue, startMatch, setPhase } from "../store/gameStore";
+import { setSpawnQueue, startMatch, setPhase, getLocalScore, getCombo } from "../store/gameStore";
 import type { SpawnEvent } from "../types/game";
 
 const START_GAP_MS = 3000;
@@ -36,6 +36,7 @@ export function Game({ bombWarning = false }: GameProps) {
   const [myScore, setMyScore] = useState(0);
   const [combo, setCombo] = useState(0);
   const duration = settingsStore.get().gameDuration;
+  const [timeRemaining, setTimeRemaining] = useState(duration);
 
   function handleBomb() {
     // TODO: send bomb to other players via websocket
@@ -142,6 +143,21 @@ export function Game({ bombWarning = false }: GameProps) {
     return () => clearInterval(id);
   }, []);
 
+  useEffect(() => {
+    const id = setInterval(() => {
+      setTimeRemaining(prev => {
+        if (prev <= 1) {
+          clearInterval(id);
+          navigate(`/results?lobbyId=${lobbyId}`);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(id);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Show self in leaderboard immediately even before DB scores load
   const displayScores: ScoreEntry[] =
     scores.length > 0
@@ -173,7 +189,7 @@ export function Game({ bombWarning = false }: GameProps) {
       {/* Top Center: Timer */}
       <div className="absolute top-6 left-1/2 -translate-x-1/2 flex flex-col items-center z-10">
         <div className="text-4xl font-mono font-black text-white tracking-tight">
-          {formatTime(duration)}
+          {formatTime(timeRemaining)}
         </div>
         <div className="text-xs font-bold text-white/70 uppercase tracking-widest">
           time remaining

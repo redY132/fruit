@@ -120,6 +120,12 @@ export function Lobby() {
     setLoading(true);
     setJoinError('');
     await upsertProfile();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      setLoading(false);
+      setJoinError('Session expired — please refresh and try again.');
+      return;
+    }
     const { data } = await supabase
       .from('lobbies')
       .select('id')
@@ -129,7 +135,7 @@ export function Lobby() {
     if (data) {
       const { error: joinErr } = await supabase
         .from('lobby_players')
-        .upsert({ lobby_id: data.id, player_id: playerId }, { onConflict: 'lobby_id,player_id', ignoreDuplicates: true });
+        .upsert({ lobby_id: data.id, player_id: user.id }, { onConflict: 'lobby_id,player_id', ignoreDuplicates: true });
       if (joinErr) {
         setLoading(false);
         setJoinError(`Failed to join: ${joinErr.message}`);

@@ -223,7 +223,7 @@ export function Game({ bombWarning = false }: GameProps) {
             🍎 <span className="text-white/80">10 + 3×combo</span>
           </div>
           <div className="text-xs font-mono text-white/50">
-            💣 <span className="text-white/80">250 pts</span>
+            💣 <span className="text-white/80">−1 life</span>
           </div>
           {combo > 0 && (
             <div className="text-xs font-mono font-bold text-yellow-400">

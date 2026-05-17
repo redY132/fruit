@@ -12,9 +12,9 @@ export async function initMediaPipe(): Promise<HandLandmarker> {
             delegate: 'GPU',
         },
         numHands: 1,
-        minHandDetectionConfidence: 0.5,
-        minHandPresenceConfidence: 0.3,
-        minTrackingConfidence: 0.5,
+        minHandDetectionConfidence: 0.4,
+        minHandPresenceConfidence: 0.1,
+        minTrackingConfidence: 0.2,
     });
     return handLandmarker;
 }

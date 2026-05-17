@@ -32,13 +32,17 @@ export function Lobby() {
     if (!playerId) return;
     supabase
       .from('profiles')
-      .select('display_name')
+      .select('display_name, avatar_url')
       .eq('id', playerId)
       .single()
       .then(({ data }) => {
         if (data?.display_name) {
           setName(data.display_name);
           profileStore.save({ name: data.display_name });
+        }
+        if (data?.avatar_url) {
+          setAvatarUrl(data.avatar_url);
+          profileStore.save({ avatarUrl: data.avatar_url });
         }
       });
   }, [playerId]);
@@ -52,14 +56,22 @@ export function Lobby() {
   function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const dataUrl = reader.result as string;
+    const img = new Image();
+    const objectUrl = URL.createObjectURL(file);
+    img.onload = () => {
+      const MAX = 128;
+      const ratio = Math.min(MAX / img.width, MAX / img.height);
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.width * ratio);
+      canvas.height = Math.round(img.height * ratio);
+      canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(objectUrl);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
       setAvatarUrl(dataUrl);
       profileStore.save({ avatarUrl: dataUrl });
       if (playerId) profileStore.syncToSupabase(playerId, name, dataUrl);
     };
-    reader.readAsDataURL(file);
+    img.src = objectUrl;
   }
 
   async function upsertProfile() {
@@ -115,7 +127,14 @@ export function Lobby() {
       .eq('status', 'waiting')
       .single();
     if (data) {
-      await supabase.from('lobby_players').insert({ lobby_id: data.id, player_id: playerId });
+      const { error: joinErr } = await supabase
+        .from('lobby_players')
+        .upsert({ lobby_id: data.id, player_id: playerId }, { onConflict: 'lobby_id,player_id' });
+      if (joinErr) {
+        setLoading(false);
+        setJoinError(`Failed to join: ${joinErr.message}`);
+        return;
+      }
       setLoading(false);
       navigate(`/room?code=${trimmed}&lobbyId=${data.id}`);
     } else {

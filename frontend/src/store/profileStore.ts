@@ -20,10 +20,11 @@ export const profileStore = {
   save: (p: Partial<Profile>) =>
     localStorage.setItem(KEY, JSON.stringify({ ...load(), ...p })),
   syncToSupabase: async (playerId: string, name: string, avatarUrl?: string | null) => {
-    await supabase.from('profiles').upsert({
+    const { error } = await supabase.from('profiles').upsert({
       id: playerId,
       display_name: name,
       ...(avatarUrl ? { avatar_url: avatarUrl } : {}),
     });
+    if (error) console.error('[profileStore] upsert failed:', error.message, error);
   },
 };

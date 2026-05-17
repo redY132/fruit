@@ -8,6 +8,7 @@ export interface ScoreEntry {
   score: number;
   hearts: number;
   dead?: boolean;
+  avatarUrl?: string | null;
 }
 
 interface LeaderboardProps {
@@ -30,7 +31,7 @@ export function Leaderboard({ entries, localPlayerId }: LeaderboardProps) {
   );
 }
 
-function ScoreRow({ rank, name, score, hearts, isYou, dead }: ScoreEntry & { isYou: boolean }) {
+function ScoreRow({ rank, name, score, hearts, isYou, dead, avatarUrl }: ScoreEntry & { isYou: boolean }) {
   return (
     <div
       className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-colors ${
@@ -47,8 +48,11 @@ function ScoreRow({ rank, name, score, hearts, isYou, dead }: ScoreEntry & { isY
       </span>
 
       {/* Avatar circle */}
-      <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0 bg-[#564A4A]">
-        {name.substring(0, 2).toUpperCase()}
+      <div className="w-7 h-7 rounded-full overflow-hidden flex items-center justify-center text-white text-[10px] font-bold shrink-0 bg-[#564A4A]">
+        {avatarUrl
+          ? <img src={avatarUrl} alt={name} className="w-full h-full object-cover" />
+          : name.substring(0, 2).toUpperCase()
+        }
       </div>
 
       {/* Name */}

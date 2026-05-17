@@ -53,13 +53,16 @@ export function Game({ bombWarning = false }: GameProps) {
     if (!lps?.length) return;
     const { data: profs } = await supabase
       .from("profiles")
-      .select("id, display_name")
+      .select("id, display_name, avatar_url")
       .in(
         "id",
         lps.map((p) => p.player_id)
       );
     const nameMap = Object.fromEntries(
       profs?.map((p) => [p.id, p.display_name]) ?? []
+    );
+    const avatarMap = Object.fromEntries(
+      profs?.map((p) => [p.id, p.avatar_url]) ?? []
     );
     const entries: ScoreEntry[] = lps.map((lp, i) => ({
       id: lp.player_id,
@@ -68,6 +71,7 @@ export function Game({ bombWarning = false }: GameProps) {
       score: lp.score,
       hearts: lp.lives,
       dead: lp.eliminated_at !== null,
+      avatarUrl: avatarMap[lp.player_id] ?? null,
     }));
     setScores(entries);
     const mine = entries.find((e) => e.id === playerId);

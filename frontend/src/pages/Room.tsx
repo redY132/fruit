@@ -27,6 +27,7 @@ interface RoomPlayer {
   isHost: boolean;
   isYou: boolean;
   ready: boolean;
+  avatarUrl?: string | null;
 }
 
 export function Room() {
@@ -58,16 +59,18 @@ export function Room() {
     if (!lps?.length) return;
     const { data: profs, error: profsErr } = await supabase
       .from('profiles')
-      .select('id, display_name')
+      .select('id, display_name, avatar_url')
       .in('id', lps.map(p => p.player_id));
     console.log('[Room] profiles:', profs, profsErr?.message);
     const nameMap = Object.fromEntries(profs?.map(p => [p.id, p.display_name]) ?? []);
+    const avatarMap = Object.fromEntries(profs?.map(p => [p.id, p.avatar_url]) ?? []);
     setPlayers(lps.map(lp => ({
       id: lp.player_id,
       name: nameMap[lp.player_id] ?? 'Unknown',
       isHost: lp.player_id === lobby?.host_id,
       isYou: lp.player_id === playerId,
       ready: lp.ready,
+      avatarUrl: avatarMap[lp.player_id] ?? null,
     })));
   }, [lobbyId, playerId]);
 
@@ -81,6 +84,7 @@ export function Room() {
       isHost: true,
       isYou: true,
       ready: false,
+      avatarUrl: profileStore.get().avatarUrl ?? null,
     }]);
     fetchPlayers();
   }, [lobbyId, playerId, fetchPlayers]);
@@ -105,6 +109,21 @@ export function Room() {
     if (lobbyId) broadcast(LobbyEvent.PlayerJoined, { playerId });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lobbyId]);
+
+  // Reliable fallback: postgres_changes fires for every INSERT into lobby_players
+  // regardless of broadcast timing, so the host always sees a new joiner.
+  useEffect(() => {
+    if (!lobbyId) return;
+    const sub = supabase
+      .channel(`lp-${lobbyId}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'lobby_players', filter: `lobby_id=eq.${lobbyId}` },
+        () => fetchPlayers(),
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(sub); };
+  }, [lobbyId, fetchPlayers]);
 
   function handleDuration(d: number) {
     setDuration(d);
@@ -178,7 +197,7 @@ export function Room() {
         {/* Player list */}
         <div className="w-full flex flex-col gap-2 mb-6">
           {players.map(p => (
-            <PlayerSlot key={p.id} name={p.name} isHost={p.isHost} isYou={p.isYou} ready={p.ready} />
+            <PlayerSlot key={p.id} name={p.name} isHost={p.isHost} isYou={p.isYou} ready={p.ready} avatarUrl={p.avatarUrl} />
           ))}
           {Array.from({ length: Math.max(0, 4 - players.length) }).map((_, i) => (
             <EmptySlot key={`empty-${i}`} />
@@ -246,11 +265,14 @@ export function Room() {
   );
 }
 
-function PlayerSlot({ name, isHost, isYou, ready }: { name: string; isHost?: boolean; isYou?: boolean; ready?: boolean }) {
+function PlayerSlot({ name, isHost, isYou, ready, avatarUrl }: { name: string; isHost?: boolean; isYou?: boolean; ready?: boolean; avatarUrl?: string | null }) {
   return (
     <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white" style={{ border: `1.5px solid ${BROWN}30` }}>
-      <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0" style={{ backgroundColor: BROWN }}>
-        {name.substring(0, 2).toUpperCase()}
+      <div className="w-9 h-9 rounded-full overflow-hidden flex items-center justify-center text-white text-sm font-bold shrink-0" style={{ backgroundColor: BROWN }}>
+        {avatarUrl
+          ? <img src={avatarUrl} alt={name} className="w-full h-full object-cover" />
+          : name.substring(0, 2).toUpperCase()
+        }
       </div>
       <div className="flex items-center gap-2 flex-1">
         <span className="font-semibold" style={{ color: BROWN }}>{name}</span>

@@ -8,7 +8,7 @@ import { profileStore } from "../store/profileStore";
 import { useAuth } from "../hooks/useAuth";
 import { supabase } from "../lib/supabase";
 import { loadFruitAssets, FOOD_KEYS } from "../game/FruitAssets";
-import { setSpawnQueue, startMatch, setPhase, getLocalScore, getCombo } from "../store/gameStore";
+import { setSpawnQueue, startMatch, setPhase, getLocalScore, getLocalLives, getCombo } from "../store/gameStore";
 import type { SpawnEvent } from "../types/game";
 
 const START_GAP_MS = 3000;
@@ -79,8 +79,7 @@ export function Game({ bombWarning = false }: GameProps) {
 
   useEffect(() => {
     let mounted = true;
-    const allTypes = [...FOOD_KEYS, "bomb"];
-    const xs = [0.2, 0.5, 0.8];
+    const BOMB_RATE = 0.18;
     const durationMs = duration * 1000;
     const n = Math.max(
       2,
@@ -91,12 +90,16 @@ export function Game({ bombWarning = false }: GameProps) {
       const gap = START_GAP_MS + (END_GAP_MS - START_GAP_MS) * (i / (n - 1));
       const spawnAt = t;
       t += gap;
+      const isBomb = Math.random() < BOMB_RATE;
+      const type = isBomb
+        ? 'bomb'
+        : FOOD_KEYS[Math.floor(Math.random() * FOOD_KEYS.length)];
       return {
         id: `fruit-${i}`,
-        type: allTypes[i % allTypes.length],
+        type,
         spawnAt,
-        x: xs[i % xs.length],
-        arc_height: ARC_HEIGHTS[i % ARC_HEIGHTS.length],
+        x: 0.1 + Math.random() * 0.8,
+        arc_height: ARC_HEIGHTS[Math.floor(Math.random() * ARC_HEIGHTS.length)],
       };
     });
     setSpawnQueue(devQueue);
@@ -138,6 +141,7 @@ export function Game({ bombWarning = false }: GameProps) {
   useEffect(() => {
     const id = setInterval(() => {
       setMyScore(getLocalScore());
+      setMyLives(getLocalLives());
       setCombo(getCombo());
     }, 100);
     return () => clearInterval(id);

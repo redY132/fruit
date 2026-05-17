@@ -36,8 +36,8 @@ export function useGameLoop(
             ctx.textBaseline = 'middle';
             ctx.shadowColor = 'rgba(0,0,0,0.7)';
             ctx.shadowBlur = 6;
-            ctx.fillStyle = popup.points >= 250 ? '#ff6b35' : '#FFD700';
-            ctx.fillText(`+${popup.points}`, 0, 0);
+            ctx.fillStyle = popup.points === -1 ? '#ff3333' : '#FFD700';
+            ctx.fillText(popup.points === -1 ? '−1 LIFE' : `+${popup.points}`, 0, 0);
             ctx.restore();
           }
         }

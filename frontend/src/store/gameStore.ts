@@ -20,6 +20,7 @@ const state = {
   phase: 'lobby' as GamePhase,
   lastTick: 0,
   localScore: 0,
+  localLives: 3,
   comboCount: 0,
   lastSliceTime: 0,
 };
@@ -39,11 +40,13 @@ export function startMatch(now: number): void {
   state.popups = [];
   state.phase = 'playing';
   state.localScore = 0;
+  state.localLives = 3;
   state.comboCount = 0;
   state.lastSliceTime = 0;
 }
 
 export function getLocalScore(): number { return state.localScore; }
+export function getLocalLives(): number { return state.localLives; }
 export function getCombo(): number { return state.comboCount; }
 export function getPopups(): ScorePopup[] { return state.popups; }
 
@@ -69,15 +72,16 @@ export function tick(now: number, screen: { w: number; h: number }): Fruit[] {
     if (fruit.alive && !fruit.sliced) {
       const sliceAngle = fruit.collidesWith(trailStore.points, trailStore.canvasW, trailStore.canvasH);
       if (sliceAngle !== null) {
-        let points: number;
         if (fruit.type === 'bomb') {
-          points = 250;
+          state.localLives = Math.max(0, state.localLives - 1);
+          state.comboCount = 0;
+          state.popups.push({ x: fruit.x, y: fruit.y, points: -1, startTime: now });
         } else {
           state.comboCount += 1;
-          points = 10 + 3 * state.comboCount;
+          const points = 10 + 3 * state.comboCount;
+          state.localScore += points;
+          state.popups.push({ x: fruit.x, y: fruit.y, points, startTime: now });
         }
-        state.localScore += points;
-        state.popups.push({ x: fruit.x, y: fruit.y, points, startTime: now });
         fruit.slice(sliceAngle, now);
       }
     }

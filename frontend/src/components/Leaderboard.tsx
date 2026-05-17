@@ -1,12 +1,11 @@
 import React from 'react';
-import { Heart, Skull } from 'lucide-react';
+import { Skull } from 'lucide-react';
 
 export interface ScoreEntry {
   id: string;
   rank: number;
   name: string;
   score: number;
-  hearts: number;
   dead?: boolean;
   avatarUrl?: string | null;
 }
@@ -31,7 +30,7 @@ export function Leaderboard({ entries, localPlayerId }: LeaderboardProps) {
   );
 }
 
-function ScoreRow({ rank, name, score, hearts, isYou, dead, avatarUrl }: ScoreEntry & { isYou: boolean }) {
+function ScoreRow({ rank, name, score, isYou, dead, avatarUrl }: ScoreEntry & { isYou: boolean }) {
   return (
     <div
       className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-colors ${
@@ -64,26 +63,10 @@ function ScoreRow({ rank, name, score, hearts, isYou, dead, avatarUrl }: ScoreEn
         {name}
       </span>
 
-      {/* Score + hearts stacked */}
+      {/* Score */}
       <div className="flex flex-col items-end gap-0.5">
         <span className="font-mono text-xs text-white/90">{score.toLocaleString()}</span>
-        <div className="flex gap-0.5">
-          {dead ? (
-            <Skull size={10} className="text-destructive" />
-          ) : (
-            [...Array(3)].map((_, i) => (
-              <Heart
-                key={i}
-                size={8}
-                className={
-                  i < hearts
-                    ? 'fill-primary text-primary'
-                    : 'fill-transparent text-white/20'
-                }
-              />
-            ))
-          )}
-        </div>
+        {dead && <Skull size={10} className="text-destructive" />}
       </div>
     </div>
   );

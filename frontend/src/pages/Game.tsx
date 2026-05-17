@@ -1,14 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import { GameCanvas } from "../components/GameCanvas";
 import { Leaderboard, type ScoreEntry } from "../components/Leaderboard";
-import { LivesDisplay } from "../components/LivesDisplay";
 import { settingsStore } from "../store/settingsStore";
 import { profileStore } from "../store/profileStore";
 import { useAuth } from "../hooks/useAuth";
 import { supabase } from "../lib/supabase";
 import { loadFruitAssets, FOOD_KEYS } from "../game/FruitAssets";
-import { setSpawnQueue, startMatch, setPhase, getLocalScore, getLocalLives, getCombo } from "../store/gameStore";
+import { setSpawnQueue, startMatch, setPhase, getLocalScore, getCombo } from "../store/gameStore";
 import type { SpawnEvent } from "../types/game";
 
 const START_GAP_MS = 3000;
@@ -32,9 +31,12 @@ export function Game({ bombWarning = false }: GameProps) {
   const lobbyId = searchParams.get("lobbyId") ?? "";
 
   const [scores, setScores] = useState<ScoreEntry[]>([]);
-  const [myLives, setMyLives] = useState(3);
   const [myScore, setMyScore] = useState(0);
   const [combo, setCombo] = useState(0);
+  const [comboKey, setComboKey] = useState(0);
+  const [scoreKey, setScoreKey] = useState(0);
+  const prevComboRef = useRef(0);
+  const prevScoreRef = useRef(0);
   const duration = settingsStore.get().gameDuration;
   const [timeRemaining, setTimeRemaining] = useState(duration);
 
@@ -47,7 +49,7 @@ export function Game({ bombWarning = false }: GameProps) {
     if (!lobbyId) return;
     const { data: lps } = await supabase
       .from("lobby_players")
-      .select("player_id, score, lives, eliminated_at")
+      .select("player_id, score, eliminated_at")
       .eq("lobby_id", lobbyId)
       .order("score", { ascending: false });
     if (!lps?.length) return;
@@ -69,14 +71,12 @@ export function Game({ bombWarning = false }: GameProps) {
       rank: i + 1,
       name: nameMap[lp.player_id] ?? "Unknown",
       score: lp.score,
-      hearts: lp.lives,
       dead: lp.eliminated_at !== null,
       avatarUrl: avatarMap[lp.player_id] ?? null,
     }));
     setScores(entries);
     const mine = entries.find((e) => e.id === playerId);
     if (mine) {
-      setMyLives(mine.hearts);
       setMyScore(mine.score);
     }
   }
@@ -145,11 +145,24 @@ export function Game({ bombWarning = false }: GameProps) {
   useEffect(() => {
     const id = setInterval(() => {
       setMyScore(getLocalScore());
-      setMyLives(getLocalLives());
       setCombo(getCombo());
     }, 100);
     return () => clearInterval(id);
   }, []);
+
+  useEffect(() => {
+    if (!lobbyId || !playerId) return;
+    const id = setInterval(async () => {
+      const score = getLocalScore();
+      const { error } = await supabase
+        .from('lobby_players')
+        .update({ score })
+        .eq('lobby_id', lobbyId)
+        .eq('player_id', playerId);
+      if (error) console.error('[score-sync] update failed:', error.message);
+    }, 2000);
+    return () => clearInterval(id);
+  }, [lobbyId, playerId]);
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -166,6 +179,16 @@ export function Game({ bombWarning = false }: GameProps) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    if (combo > prevComboRef.current) setComboKey(k => k + 1);
+    prevComboRef.current = combo;
+  }, [combo]);
+
+  useEffect(() => {
+    if (myScore !== prevScoreRef.current) setScoreKey(k => k + 1);
+    prevScoreRef.current = myScore;
+  }, [myScore]);
+
   // Show self in leaderboard immediately even before DB scores load
   const displayScores: ScoreEntry[] =
     scores.length > 0
@@ -177,13 +200,25 @@ export function Game({ bombWarning = false }: GameProps) {
             rank: 1,
             name: profileStore.get().name || "Player",
             score: myScore,
-            hearts: myLives,
             dead: false,
           },
         ]
       : [];
 
   return (
+    <>
+    <style>{`
+      @keyframes comboPunch {
+        0%   { transform: scale(1.45); opacity: 0.6; }
+        55%  { transform: scale(0.93); opacity: 1;   }
+        100% { transform: scale(1);    opacity: 1;   }
+      }
+      @keyframes scorePunch {
+        0%   { transform: scale(1.35); }
+        55%  { transform: scale(0.96); }
+        100% { transform: scale(1);    }
+      }
+    `}</style>
     <GameCanvas bombWarning={bombWarning} onBomb={handleBomb}>
       {/* Bomb incoming warning banner */}
       {bombWarning && (
@@ -205,12 +240,37 @@ export function Game({ bombWarning = false }: GameProps) {
       </div>
 
       {/* Top Right: Player Stats */}
-      <div className="absolute top-6 right-6 flex flex-col items-end gap-2 z-10">
-        <div className="flex items-center gap-4 bg-black/40 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/10">
-          <LivesDisplay lives={myLives} />
-          <div className="w-px h-8 bg-white/10 mx-2" />
+      <div className="absolute top-6 right-6 flex flex-col items-end gap-1 z-10">
+        {/* Large gradient combo counter */}
+        {combo > 0 && (
+          <div
+            key={comboKey}
+            className="font-black leading-none tracking-tighter select-none"
+            style={{
+              fontSize: '5.5rem',
+              backgroundImage: 'linear-gradient(180deg, #7A6565 0%, #D4AFAF 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+              filter: 'drop-shadow(0 2px 12px rgba(122,101,101,0.55))',
+              animation: 'comboPunch 0.28s cubic-bezier(0.36,0.07,0.19,0.97)',
+            }}
+          >
+            {combo}x
+          </div>
+        )}
+
+        {/* Score box */}
+        <div className="flex items-center bg-black/40 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/10">
           <div className="flex flex-col items-end">
-            <div className="text-4xl font-mono font-black text-white leading-none tracking-tight">
+            <div
+              key={scoreKey}
+              className="text-4xl font-mono font-black leading-none tracking-tight"
+              style={{
+                color: myScore < 0 ? '#ff6b6b' : 'white',
+                animation: 'scorePunch 0.25s ease-out',
+              }}
+            >
               {myScore.toLocaleString()}
             </div>
             <div className="text-xs font-mono text-white/50">score</div>
@@ -223,13 +283,11 @@ export function Game({ bombWarning = false }: GameProps) {
             🍎 <span className="text-white/80">10 + 3×combo</span>
           </div>
           <div className="text-xs font-mono text-white/50">
-            💣 <span className="text-white/80">−1 life</span>
+            💣 hit <span className="text-white/80">−250 pts</span>
           </div>
-          {combo > 0 && (
-            <div className="text-xs font-mono font-bold text-yellow-400">
-              {combo}x combo
-            </div>
-          )}
+          <div className="text-xs font-mono text-white/50">
+            💣 send <span className="text-white/80">75 pts</span>
+          </div>
         </div>
       </div>
 
@@ -252,5 +310,6 @@ export function Game({ bombWarning = false }: GameProps) {
         </button>
       </div>
     </GameCanvas>
+    </>
   );
 }

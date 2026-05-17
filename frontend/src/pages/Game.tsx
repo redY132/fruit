@@ -13,6 +13,7 @@ import type { SpawnEvent } from "../types/game";
 
 const START_GAP_MS = 3000;
 const END_GAP_MS = 500;
+const ARC_HEIGHTS = [0.35, 0.45, 0.55, 0.65, 0.75, 0.85];
 
 function formatTime(s: number) {
   const m = Math.floor(s / 60);
@@ -94,7 +95,7 @@ export function Game({ bombWarning = false }: GameProps) {
         type: allTypes[i % allTypes.length],
         spawnAt,
         x: xs[i % xs.length],
-        arc_height: 0.6,
+        arc_height: ARC_HEIGHTS[i % ARC_HEIGHTS.length],
       };
     });
     setSpawnQueue(devQueue);

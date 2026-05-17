@@ -5,6 +5,13 @@ export interface SpawnEvent {
   type: FruitType;
   spawnAt: number;
   x: number;
+  arc_height: number;
+}
+
+export interface ActiveFruit {
+  id: string;
+  spawnedAt: number;
+  event: SpawnEvent;
 }
 
 export interface FruitQueue {

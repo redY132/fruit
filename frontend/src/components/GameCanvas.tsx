@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import Webcam from 'react-webcam';
 import { useHandTracking } from '../hooks/useHandTracking';
+import { useGameLoop } from '../hooks/useGameLoop';
 import { HandOverlay } from './HandOverlay';
 
 interface GameCanvasProps {
@@ -11,8 +12,12 @@ interface GameCanvasProps {
 export function GameCanvas({ bombWarning = false, children }: GameCanvasProps) {
   const webcamRef = useRef<Webcam>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const fruitCanvasRef = useRef<HTMLCanvasElement>(null);
+
+  const screen = { w: window.innerWidth, h: window.innerHeight };
 
   useHandTracking(webcamRef, canvasRef);
+  useGameLoop(fruitCanvasRef, screen);
 
   return (
     <div
@@ -31,6 +36,20 @@ export function GameCanvas({ bombWarning = false, children }: GameCanvasProps) {
           objectFit: 'cover',
         }}
         mirrored
+      />
+
+      {/* Fruit physics canvas — sits above webcam, below hand overlay */}
+      <canvas
+        ref={fruitCanvasRef}
+        width={window.innerWidth}
+        height={window.innerHeight}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          width: '100%',
+          height: '100%',
+          pointerEvents: 'none',
+        }}
       />
 
       {/* Trail + hand skeleton overlay — full viewport dimensions */}

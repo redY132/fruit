@@ -7,9 +7,9 @@ import { settingsStore } from '../store/settingsStore';
 import { profileStore } from '../store/profileStore';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
-import { loadFruitAssets } from '../game/FruitAssets';
+import { loadFruitAssets, FOOD_KEYS } from '../game/FruitAssets';
 import { setSpawnQueue, startMatch, setPhase } from '../store/gameStore';
-import type { SpawnEvent, FruitType } from '../types/game';
+import type { SpawnEvent } from '../types/game';
 
 function formatTime(s: number) {
   const m = Math.floor(s / 60);
@@ -65,11 +65,11 @@ export function Game({ bombWarning = false }: GameProps) {
 
   useEffect(() => {
     let mounted = true;
-    const types = ['apple', 'orange', 'watermelon', 'mango', 'bomb'] as FruitType[];
+    const allTypes = [...FOOD_KEYS, 'bomb'];
     const xs = [0.2, 0.5, 0.8];
     const devQueue: SpawnEvent[] = Array.from({ length: 20 }, (_, i) => ({
       id: `fruit-${i}`,
-      type: types[i % 5],
+      type: allTypes[i % allTypes.length],
       spawnAt: i * 2750,
       x: xs[i % 3],
       arc_height: 0.6,

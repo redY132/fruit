@@ -169,7 +169,9 @@ export function Room() {
   const allReady = players.length === 0 || players.filter(p => !p.isHost).every(p => p.ready);
 
   return (
-    <div className="w-screen h-screen bg-white flex flex-col items-center justify-center relative overflow-hidden">
+    <div
+      className="w-screen h-screen bg-white flex flex-col items-center justify-center relative overflow-hidden"
+    >
       <button
         onClick={handleBack}
         className="absolute top-6 left-6 z-10 flex items-center gap-2 hover:opacity-70 transition-opacity"
@@ -256,10 +258,10 @@ export function Room() {
       </div>
 
       <img
-        src="/assets/mascot.png"
-        alt="Fruity mascots"
-        className="absolute bottom-0 left-0 w-full object-contain object-bottom pointer-events-none select-none"
-        style={{ maxHeight: '38vh' }}
+        src="/assets/backdrop.png"
+        alt=""
+        className="absolute bottom-0 left-1/2 -translate-x-1/2 pointer-events-none select-none"
+        width={800}
       />
     </div>
   );

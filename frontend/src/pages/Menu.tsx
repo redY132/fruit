@@ -1,12 +1,17 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
-import CustomWebcam from '../components/Webcam';
+import React, { useState } from "react";
+import { useNavigate } from "react-router";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "../components/ui/dialog";
+import CustomWebcam from "../components/Webcam";
 
 const FONT_TITLE = "'Irish Grover', cursive";
 const FONT_BODY = "'Baloo Bhaijaan 2', sans-serif";
-const BROWN = '#564A4A';
-const SHADOW = '0 4px 14px rgba(86,74,74,0.35)';
+const BROWN = "#564A4A";
+const SHADOW = "0 4px 14px rgba(86,74,74,0.35)";
 
 export function Menu() {
   const navigate = useNavigate();
@@ -16,17 +21,31 @@ export function Menu() {
     <div className="w-screen h-screen bg-white flex flex-col items-center justify-center relative overflow-hidden">
       <div className="flex flex-col items-center z-10 mb-8">
         <h1
-          className="text-[96px] leading-none mb-10"
+          className="text-[96px] leading-none"
           style={{ fontFamily: FONT_TITLE, color: BROWN }}
         >
-          Fruity
+          Food Ninja
         </h1>
+        <p
+          className="text-lg mb-10 tracking-widest"
+          style={{ fontFamily: FONT_BODY, color: `${BROWN}99` }}
+        >
+          食べ物ニンジャ
+        </p>
 
-        <div className="flex flex-col gap-3 w-[280px]" style={{ fontFamily: FONT_BODY }}>
+        <div
+          className="flex flex-col gap-3 w-[280px]"
+          style={{ fontFamily: FONT_BODY }}
+        >
           <button
-            onClick={() => navigate('/lobby')}
+            onClick={() => navigate("/lobby")}
             className="w-full py-4 rounded-full font-bold text-lg transition-colors active:scale-95 border-2"
-            style={{ backgroundColor: '#EDE8E8', borderColor: BROWN, color: BROWN, boxShadow: SHADOW }}
+            style={{
+              backgroundColor: "#EDE8E8",
+              borderColor: BROWN,
+              color: BROWN,
+              boxShadow: SHADOW,
+            }}
           >
             Play
           </button>
@@ -46,19 +65,17 @@ export function Menu() {
             WebCam Test
           </button>
         </div>
-      </div>
 
-      {/* Mascot row pinned to bottom */}
-      <img
-        src="/assets/mascot.png"
-        alt="Fruity mascots"
-        className="absolute bottom-0 left-0 w-full object-contain object-bottom pointer-events-none select-none"
-        style={{ maxHeight: '42vh' }}
-      />
+        <img
+          src="/assets/backdrop.png"
+          alt=""
+          className="w-[800px] mt-4 pointer-events-none select-none"
+        />
+      </div>
 
       {/* Webcam test dialog */}
       <Dialog open={cameraOpen} onOpenChange={setCameraOpen}>
-        <DialogContent style={{ width: 'fit-content', maxWidth: '90vw' }}>
+        <DialogContent style={{ width: "fit-content", maxWidth: "90vw" }}>
           <DialogHeader>
             <DialogTitle>Camera Test</DialogTitle>
           </DialogHeader>

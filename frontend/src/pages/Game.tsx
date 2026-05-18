@@ -7,7 +7,7 @@ import { profileStore } from "../store/profileStore";
 import { useAuth } from "../hooks/useAuth";
 import { supabase } from "../lib/supabase";
 import { loadFruitAssets, FOOD_KEYS } from "../game/FruitAssets";
-import { setSpawnQueue, startMatch, setPhase, getLocalScore, getCombo } from "../store/gameStore";
+import { setSpawnQueue, startMatch, setPhase, getLocalScore, getCombo, getMaxCombo, getFruitsSliced } from "../store/gameStore";
 import type { SpawnEvent } from "../types/game";
 
 const START_GAP_MS = 1500;
@@ -38,6 +38,8 @@ export function Game({ bombWarning = false }: GameProps) {
   const prevComboRef = useRef(0);
   const prevScoreRef = useRef(0);
   const musicRef = useRef<HTMLAudioElement | null>(null);
+  const playerIdRef = useRef(playerId);
+  playerIdRef.current = playerId;
   const duration = settingsStore.get().gameDuration;
   const [timeRemaining, setTimeRemaining] = useState(duration);
 
@@ -167,9 +169,11 @@ export function Game({ bombWarning = false }: GameProps) {
     if (!lobbyId || !playerId) return;
     const id = setInterval(async () => {
       const score = getLocalScore();
+      const fruits_sliced = getFruitsSliced();
+      const max_combo = getMaxCombo();
       const { error } = await supabase
         .from('lobby_players')
-        .update({ score })
+        .update({ score, fruits_sliced, max_combo })
         .eq('lobby_id', lobbyId)
         .eq('player_id', playerId);
       if (error) console.error('[score-sync] update failed:', error.message);
@@ -186,7 +190,19 @@ export function Game({ bombWarning = false }: GameProps) {
             musicRef.current.pause();
             musicRef.current.currentTime = 0;
           }
-          navigate(`/results?lobbyId=${lobbyId}`);
+          const finalScore = getLocalScore();
+          const finalCombo = getMaxCombo();
+          const finalFruits = getFruitsSliced();
+          if (lobbyId && playerIdRef.current) {
+            supabase.from('lobby_players')
+              .update({ score: finalScore, fruits_sliced: finalFruits, max_combo: finalCombo })
+              .eq('lobby_id', lobbyId)
+              .eq('player_id', playerIdRef.current)
+              .then(({ error }) => {
+                if (error) console.error('[final-sync]', error.message);
+              });
+          }
+          navigate(`/results?lobbyId=${lobbyId}&score=${finalScore}&maxCombo=${finalCombo}&fruits=${finalFruits}`);
           return 0;
         }
         return prev - 1;

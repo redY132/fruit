@@ -249,12 +249,11 @@ export function Lobby() {
         </div>
       </div>
 
-      {/* Mascot */}
       <img
-        src="/assets/mascot.png"
-        alt="Fruity mascots"
-        className="absolute bottom-0 left-0 w-full object-contain object-bottom pointer-events-none select-none"
-        style={{ maxHeight: '38vh' }}
+        src="/assets/backdrop.png"
+        alt=""
+        className="absolute bottom-0 left-1/2 -translate-x-1/2 pointer-events-none select-none"
+        width={800}
       />
 
       {/* Join Room modal */}

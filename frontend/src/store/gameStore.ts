@@ -26,6 +26,8 @@ const state = {
   lastTick: 0,
   localScore: 0,
   comboCount: 0,
+  maxCombo: 0,
+  fruitsSliced: 0,
   lastSliceTime: 0,
 };
 
@@ -45,11 +47,15 @@ export function startMatch(now: number): void {
   state.phase = 'playing';
   state.localScore = 0;
   state.comboCount = 0;
+  state.maxCombo = 0;
+  state.fruitsSliced = 0;
   state.lastSliceTime = 0;
 }
 
 export function getLocalScore(): number { return state.localScore; }
 export function getCombo(): number { return state.comboCount; }
+export function getMaxCombo(): number { return state.maxCombo; }
+export function getFruitsSliced(): number { return state.fruitsSliced; }
 export function getPopups(): ScorePopup[] { return state.popups; }
 
 export function tick(now: number, screen: { w: number; h: number }): Fruit[] {
@@ -82,6 +88,8 @@ export function tick(now: number, screen: { w: number; h: number }): Fruit[] {
           sfxBomb.play().catch(() => {});
         } else {
           state.comboCount += 1;
+          state.fruitsSliced += 1;
+          if (state.comboCount > state.maxCombo) state.maxCombo = state.comboCount;
           const points = 10 + 3 * state.comboCount;
           state.localScore += points;
           state.popups.push({ x: fruit.x, y: fruit.y, points, startTime: now });

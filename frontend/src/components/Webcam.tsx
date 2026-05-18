@@ -29,7 +29,7 @@ const CustomWebcam = ({ width, height, onBomb }: Props) => {
   useHandTracking(webcamRef, canvasRef, onBomb);
 
   return (
-    <div style={{ position: "relative", width, height }}>
+    <div style={{ position: "relative", width: actualSize.width, height: actualSize.height, overflow: "hidden" }}>
       <Webcam ref={webcamRef} width={width} height={height} mirrored />
       <HandOverlay ref={canvasRef} width={actualSize.width} height={actualSize.height} />
     </div>

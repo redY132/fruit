@@ -90,8 +90,7 @@ export function useHandTracking(
   const spreadHistoryRef = useRef<number[]>([]);
   const lastBombRef = useRef<number>(0);
   const bombEffectRef = useRef<{ x: number; y: number; startTime: number } | null>(null);
-  const SMOOTHING = 0.72;
-  const MAX_FRAME_DELTA = 0.1; // max normalized movement per frame before clamping raw input
+  const SMOOTHING = 0.35;
   const BOMB_EFFECT_DURATION = 600;
 
   useEffect(() => {
@@ -106,22 +105,14 @@ export function useHandTracking(
       const canvas = canvasRef.current;
       const ctx = canvas?.getContext('2d');
       if (video && ctx && canvas && landmarkerRef.current && video.readyState >= 2) {
-        const results = landmarkerRef.current.detectForVideo(video, Date.now());
+        const results = landmarkerRef.current.detectForVideo(video, performance.now());
 
         if (results.landmarks.length > 0) {
           const raw = { x: 1 - results.landmarks[0][8].x, y: results.landmarks[0][8].y };
           const prevSmoothed = smoothedTipRef.current ?? raw;
-          // Clamp how far the raw reading can jump per frame — rejects the MediaPipe
-          // artifact where the tip drifts toward the palm center during fast motion
-          const ddx = raw.x - prevSmoothed.x;
-          const ddy = raw.y - prevSmoothed.y;
-          const dd = Math.sqrt(ddx * ddx + ddy * ddy);
-          const clamped = dd > MAX_FRAME_DELTA
-            ? { x: prevSmoothed.x + (ddx / dd) * MAX_FRAME_DELTA, y: prevSmoothed.y + (ddy / dd) * MAX_FRAME_DELTA }
-            : raw;
           const tip = {
-            x: prevSmoothed.x * SMOOTHING + clamped.x * (1 - SMOOTHING),
-            y: prevSmoothed.y * SMOOTHING + clamped.y * (1 - SMOOTHING),
+            x: prevSmoothed.x * SMOOTHING + raw.x * (1 - SMOOTHING),
+            y: prevSmoothed.y * SMOOTHING + raw.y * (1 - SMOOTHING),
           };
           smoothedTipRef.current = tip;
           const prev = trailRef.current[trailRef.current.length - 1];

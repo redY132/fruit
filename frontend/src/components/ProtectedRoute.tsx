@@ -1,10 +1,35 @@
-import React from 'react'
-import { Outlet } from 'react-router'
+import React, { useEffect, useRef } from 'react'
+import { Outlet, useLocation } from 'react-router'
 import { useAuth } from '../hooks/useAuth'
 import { supabaseConfigured } from '../lib/supabase'
 
+const GAME_ROUTES = ['/game', '/bomb', '/shop']
+
 export function ProtectedRoute() {
   const { session, playerId } = useAuth()
+  const location = useLocation()
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+
+  useEffect(() => {
+    const audio = new Audio('/assets/lobby.mp3')
+    audio.loop = true
+    audio.volume = 0.3
+    audioRef.current = audio
+    return () => {
+      audio.pause()
+      audioRef.current = null
+    }
+  }, [])
+
+  useEffect(() => {
+    const audio = audioRef.current
+    if (!audio) return
+    if (GAME_ROUTES.includes(location.pathname)) {
+      audio.pause()
+    } else {
+      audio.play().catch(() => {})
+    }
+  }, [location.pathname])
 
   if (!supabaseConfigured) return <Outlet />
 
